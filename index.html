@@ -313,7 +313,14 @@
     });
 
     window.addEventListener("message", (event) => {
+      if (!window.__submitPending) return;
       const data = event.data || {};
+      const isStructured =
+        data && typeof data === "object" &&
+        Object.prototype.hasOwnProperty.call(data, "ok") &&
+        (Object.prototype.hasOwnProperty.call(data, "id") || Object.prototype.hasOwnProperty.call(data, "error"));
+      if (!isStructured) return;
+
       window.__submitPending = false;
       submitBtn.disabled = false;
       submitBtn.textContent = "보고서 제출하기";
@@ -345,4 +352,3 @@
   </script>
 </body>
 </html>
-
