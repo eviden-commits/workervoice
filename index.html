@@ -271,7 +271,7 @@
       });
     });
 
-    reporterName.addEventListener("input", () => { const v = sanitizeName(reporterName.value); if(v !== reporterName.value) reporterName.value = v; });
+    reporterName.addEventListener("blur", () => { const v = sanitizeName(reporterName.value); if(v !== reporterName.value) reporterName.value = v; });
     reporterContact.addEventListener("input", () => { const v = sanitizePhone(reporterContact.value); if(v !== reporterContact.value) reporterContact.value = v; });
     isAnonymousToggle.addEventListener("change", setIdentityMode);
     categoryEl.addEventListener("change", renderTitleTemplates);
