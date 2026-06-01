@@ -62,9 +62,8 @@
     <div class="grid">
       <section class="card">
         <h3 class="section-title">신규 보고서 작성</h3>
-        <form id="voiceForm" method="post" target="submitFrame">
+        <form id="voiceForm" method="post">
           <input type="hidden" name="action" value="create" />
-          <input type="hidden" name="response_mode" value="iframe" />
           <input type="hidden" name="risk_level" id="riskLevel" value="medium" />
           <input type="hidden" name="is_anonymous" id="isAnonymousHidden" value="FALSE" />
           <input type="hidden" name="recaptcha_token" id="recaptchaToken" />
@@ -131,7 +130,6 @@
           <div class="notice" id="submitMsg">접수 대기 중</div>
           <div class="success" id="receiptMsg" style="display:none;"></div>
         </form>
-        <iframe name="submitFrame" style="display:none"></iframe>
       </section>
 
       <section class="card">
@@ -200,6 +198,14 @@
       reporterName.disabled = anon; reporterContact.disabled = anon; reporterEmail.disabled = anon;
       reporterName.required = !anon; reporterContact.required = !anon; reporterEmail.required = !anon;
       if(anon){ reporterName.value=""; reporterContact.value=""; reporterEmail.value=""; }
+    }
+
+    function syncTitleBeforeSubmit() {
+      const v = titleTemplateEl.value;
+      if (v && v !== "__custom__") {
+        titleInputEl.value = v;
+      }
+      titleInputEl.disabled = false;
     }
 
     function renderTitleTemplates(){
@@ -280,6 +286,7 @@
       ev.preventDefault();
       reporterName.value = sanitizeName(reporterName.value);
       reporterContact.value = sanitizePhone(reporterContact.value);
+      syncTitleBeforeSubmit();
 
       if(window.grecaptcha){
         const token = grecaptcha.getResponse();
@@ -303,31 +310,33 @@
       submitBtn.textContent = "제출 중...";
       submitMsg.textContent = "접수 중...";
       receiptMsg.style.display = "none";
-      voiceForm.action = GAS_URL;
-      voiceForm.submit();
-      window.__submitPending = true;
-      setTimeout(() => {
-        if(!window.__submitPending) return;
-        submitMsg.textContent = "접수 응답 지연: 서버 재배포/권한/리캡차 설정을 확인해 주세요.";
-      }, 10000);
-    });
 
-    window.addEventListener("message", (event) => {
-      if (!window.__submitPending) return;
-      const data = event.data || {};
-      const isStructured =
-        data && typeof data === "object" &&
-        Object.prototype.hasOwnProperty.call(data, "ok") &&
-        (Object.prototype.hasOwnProperty.call(data, "id") || Object.prototype.hasOwnProperty.call(data, "error"));
-      if (!isStructured) return;
+      let data;
+      try {
+        const formData = new FormData(voiceForm);
+        const res = await fetch(GAS_URL, { method: "POST", body: formData });
+        data = await res.json();
+      } catch (error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "보고서 제출하기";
+        submitMsg.textContent = "접수 실패: 네트워크/CORS 오류";
+        alert("접수 실패\n네트워크 또는 권한(CORS) 문제입니다.\nGitHub Pages 주소에서 테스트하고, Apps Script 권한(Anyone)과 재배포 상태를 확인해 주세요.");
+        return;
+      }
 
-      window.__submitPending = false;
       submitBtn.disabled = false;
       submitBtn.textContent = "보고서 제출하기";
 
-      if(!data.ok){
-        submitMsg.textContent = `접수 실패: ${data.error || "unknown error"}`;
-        alert(`접수 실패\n${data.error || "unknown error"}`);
+      if(!data || !data.ok){
+        submitMsg.textContent = `접수 실패: ${(data && data.error) || "unknown error"}`;
+        const err = (data && data.error) || "unknown error";
+        if (String(err).toLowerCase().includes("recaptcha")) {
+          alert(`접수 실패\n${err}\nreCAPTCHA 키/도메인/비밀키 설정을 확인해 주세요.`);
+        } else if (String(err).toLowerCase().includes("duplicate")) {
+          alert(`접수 실패\n${err}`);
+        } else {
+          alert(`접수 실패\n${err}`);
+        }
         return;
       }
       if(!data.id){
