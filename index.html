@@ -122,7 +122,7 @@
 
           <div class="form-grid3" style="margin-top:10px;">
             <div><label class="label">이름</label><input name="reporter_name" id="reporterName" inputmode="text" /></div>
-            <div><label class="label">전화번호</label><input name="reporter_contact" id="reporterContact" inputmode="numeric" placeholder="01000000000" /></div>
+            <div><label class="label">전화번호</label><input name="reporter_contact" id="reporterContact" inputmode="numeric" pattern="[0-9]*" maxlength="11" placeholder="01000000000" /></div>
             <div><label class="label">이메일 주소</label><input name="reporter_email" id="reporterEmail" type="email" placeholder="email@company.com" /></div>
           </div>
 
@@ -178,8 +178,8 @@
     const attachmentMime = document.getElementById("attachmentMime");
 
     function esc(v){ return String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
-    function sanitizeName(v){ return String(v||"").replace(/[^A-Za-z가-힣\\s]/g,"").replace(/\\s{2,}/g," ").trim(); }
-    function sanitizePhone(v){ return String(v||"").replace(/\\D/g,""); }
+    function sanitizeName(v){ return String(v||"").replace(/[^A-Za-z가-힣\s]/g,"").replace(/\s{2,}/g," ").trim(); }
+    function sanitizePhone(v){ return String(v||"").replace(/\D/g,""); }
 
     function jsonp(url, onOk, onError){
       const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*1000);
@@ -345,4 +345,3 @@
   </script>
 </body>
 </html>
-
