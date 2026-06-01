@@ -249,7 +249,7 @@
 
     function lookupByReceipt(){
       const receipt = (receiptNoInput.value || "").trim();
-      if(!/^\\d{4}$/.test(receipt)){ listEl.innerHTML = '<p class="notice">접수번호 4자리를 입력해 주세요.</p>'; return; }
+      if(!/^\d{4}$/.test(receipt)){ listEl.innerHTML = '<p class="notice">접수번호 4자리를 입력해 주세요.</p>'; return; }
       const url = new URL(GAS_URL);
       url.searchParams.set("action","receipt_lookup");
       url.searchParams.set("receipt_no",receipt);
