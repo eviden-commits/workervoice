@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Worker Voice Admin</title>
+  <style>
+    :root {
+      --bg:#f5f5f7; --surface:#fff; --text:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --brand:#0071e3;
+      --r:14px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1200px;margin:0 auto;padding:20px 14px 40px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+    h1{margin:0 0 6px;font-size:28px}
+    .header-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+    .muted{color:var(--muted);font-size:13px}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .token-mini{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+    .token-mini input{width:150px;padding:6px 8px;font-size:12px}
+    input,select,textarea{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit}
+    textarea{min-height:34px;resize:vertical}
+    .btn{border:0;border-radius:999px;background:var(--brand);color:#fff;padding:9px 14px;font-weight:600;cursor:pointer}
+    .btn.ghost{background:#e8e8ed;color:var(--text)}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;min-width:1050px}
+    th,td{border-bottom:1px solid var(--line);padding:8px;vertical-align:top;font-size:13px}
+    th{color:var(--muted);text-align:left}
+    .pill{padding:2px 8px;border-radius:999px;background:#eef4ff;color:#1f5fbf;font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header-row">
+        <div>
+          <h1>Worker Voice Admin</h1>
+          <div class="muted">등록된 이메일 기준으로 본인 현장 건만 조회/수정합니다.</div>
+        </div>
+        <label class="token-mini">Admin Token <input id="adminToken" placeholder="token" /></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <label>연락받은 이메일
+          <input id="contactEmail" style="width:280px" placeholder="name@example.com" />
+        </label>
+        <button class="btn ghost" id="btnSendOtp">인증번호 발송</button>
+        <label>현장 인증번호
+          <input id="siteOtp" style="width:130px" maxlength="6" placeholder="6자리" />
+        </label>
+        <label><input type="checkbox" id="notifyMail" checked> 저장 시 회신 메일 발송</label>
+        <label>상태
+          <select id="fStatus">
+            <option value="">전체</option>
+            <option value="active">처리중</option>
+            <option value="in_review">검토중</option>
+            <option value="done">완료</option>
+            <option value="hold">보류</option>
+          </select>
+        </label>
+        <label>카테고리
+          <select id="fCategory">
+            <option value="">전체</option>
+            <option value="안전관리">안전관리</option>
+            <option value="노무관리">노무관리</option>
+            <option value="기타관리">기타관리</option>
+          </select>
+        </label>
+        <button class="btn" id="btnLoad">조회</button>
+      </div>
+      <div class="muted" id="msg" style="margin-top:8px">준비됨</div>
+    </div>
+
+    <div class="card table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>접수일</th><th>카테고리</th><th>제목</th><th>현장</th>
+            <th>회신 e-mail</th><th>위험도</th><th>상태</th><th>처리목표일</th><th>담당자</th><th>조치메모</th><th>저장</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyEhd91bxscWGtnLiEwb74vpEcEsNicXHaEdquyLjEkY3-Wxrv-5_5OMoF3f0s6NRzG/exec";
+    const contactEmailEl = document.getElementById("contactEmail");
+    const adminTokenEl = document.getElementById("adminToken");
+    const siteOtpEl = document.getElementById("siteOtp");
+    const fStatusEl = document.getElementById("fStatus");
+    const fCategoryEl = document.getElementById("fCategory");
+    const notifyMailEl = document.getElementById("notifyMail");
+    const msgEl = document.getElementById("msg");
+    const tbody = document.getElementById("tbody");
+    const statusLabel = { active: "처리중", in_review: "검토중", done: "완료", hold: "보류" };
+
+    contactEmailEl.value = localStorage.getItem("wv_contact_email") || "";
+    adminTokenEl.value = localStorage.getItem("wv_admin_token") || "";
+
+    function esc(v){
+      return String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+    }
+    function setMsg(t){ msgEl.textContent = t; }
+
+    function jsonp(url, cb){
+      const name = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+      window[name] = function(res){ cb(res); delete window[name]; };
+      url.searchParams.set("callback", name);
+      const s = document.createElement("script");
+      s.src = url.toString();
+      s.onload = () => s.remove();
+      document.body.appendChild(s);
+    }
+
+    function loadRows(){
+      const contactEmail = contactEmailEl.value.trim();
+      if(!contactEmail){ setMsg("연락받은 이메일을 입력하세요."); return; }
+      localStorage.setItem("wv_contact_email", contactEmail);
+      localStorage.setItem("wv_admin_token", adminTokenEl.value.trim());
+
+      const url = new URL(GAS_URL);
+      url.searchParams.set("action", "site_list");
+      url.searchParams.set("contact_email", contactEmail);
+      if(fStatusEl.value) url.searchParams.set("status", fStatusEl.value);
+      if(fCategoryEl.value) url.searchParams.set("category", fCategoryEl.value);
+
+      setMsg("조회 중...");
+      jsonp(url, (res) => {
+        if (!res || !res.ok) {
+          setMsg(`조회 실패: ${(res && res.error) ? res.error : "unknown error"}`);
+          return;
+        }
+        renderRows(res.items || []);
+        setMsg(`조회 완료: ${(res.items || []).length}건 / 현장: ${(res.allowed_sites || []).join(", ") || "-"}`);
+      });
+    }
+
+    function sendOtp(){
+      const contactEmail = contactEmailEl.value.trim();
+      if(!contactEmail){ setMsg("연락받은 이메일을 입력하세요."); return; }
+      const url = new URL(GAS_URL);
+      url.searchParams.set("action", "send_site_otp");
+      url.searchParams.set("contact_email", contactEmail);
+      setMsg("인증번호 발송 중...");
+      jsonp(url, (res) => {
+        if (!res || !res.ok) {
+          setMsg(`인증번호 발송 실패: ${(res && res.error) ? res.error : "unknown error"}`);
+          return;
+        }
+        if (res.is_master) setMsg("마스터 이메일은 인증번호 없이 Admin Token으로 저장합니다.");
+        else setMsg("인증번호를 이메일로 보냈습니다. 입력 후 저장하세요.");
+      });
+    }
+
+    function renderRows(items){
+      if(!items.length){
+        tbody.innerHTML = '<tr><td colspan="12">조회 가능한 데이터가 없습니다.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = items.map(it => `
+        <tr data-id="${esc(it.id)}">
+          <td><span class="pill">${esc(it.id)}</span></td>
+          <td>${esc(it.created_at)}</td>
+          <td>${esc(it.category)}</td>
+          <td>${esc(it.title)}</td>
+          <td>${esc(it.site_name)}</td>
+          <td>${esc(it.reporter_email || "")}</td>
+          <td>
+            <select data-k="risk_level">
+              <option value="low" ${it.risk_level==="low"?"selected":""}>낮음</option>
+              <option value="medium" ${it.risk_level==="medium"?"selected":""}>중간</option>
+              <option value="high" ${it.risk_level==="high"?"selected":""}>높음</option>
+              <option value="critical" ${it.risk_level==="critical"?"selected":""}>긴급</option>
+            </select>
+          </td>
+          <td>
+            <select data-k="status">
+              <option value="active" ${it.status==="active"?"selected":""}>처리중</option>
+              <option value="in_review" ${it.status==="in_review"?"selected":""}>검토중</option>
+              <option value="done" ${it.status==="done"?"selected":""}>완료</option>
+              <option value="hold" ${it.status==="hold"?"selected":""}>보류</option>
+            </select>
+          </td>
+          <td><input data-k="due_date" type="date" value="${esc(it.due_date)}"></td>
+          <td><input data-k="action_owner" value="${esc(it.action_owner)}"></td>
+          <td><textarea data-k="action_note">${esc(it.action_note)}</textarea></td>
+          <td><button class="btn ghost" onclick="saveRow(this)">저장</button></td>
+        </tr>
+      `).join("");
+    }
+
+    window.saveRow = function(btn){
+      const token = adminTokenEl.value.trim();
+      if(!token){ setMsg("Admin Token을 입력하세요."); return; }
+
+      const tr = btn.closest("tr");
+      const data = { id: tr.dataset.id };
+      tr.querySelectorAll("[data-k]").forEach(el => data[el.dataset.k] = el.value.trim());
+
+      const url = new URL(GAS_URL);
+      url.searchParams.set("action", "admin_update");
+      url.searchParams.set("token", token);
+      url.searchParams.set("id", data.id);
+      url.searchParams.set("status", data.status);
+      url.searchParams.set("due_date", data.due_date);
+      url.searchParams.set("action_owner", data.action_owner);
+      url.searchParams.set("action_note", data.action_note);
+      url.searchParams.set("risk_level", data.risk_level);
+      url.searchParams.set("updated_by", "admin-page");
+      url.searchParams.set("notify", notifyMailEl.checked ? "TRUE" : "FALSE");
+
+      const contactEmail = contactEmailEl.value.trim();
+      url.searchParams.set("contact_email", contactEmail);
+      url.searchParams.set("site_otp", siteOtpEl.value.trim());
+
+      setMsg(`저장 중: ${data.id}`);
+      jsonp(url, (res) => {
+        if (res && res.ok) setMsg(`저장 완료: ${data.id}${res.mail_sent ? " (메일발송 완료)" : ""}`);
+        else setMsg(`저장 실패: ${(res && res.error) ? res.error : "unknown error"}`);
+      });
+    };
+
+    document.getElementById("btnLoad").addEventListener("click", loadRows);
+    document.getElementById("btnSendOtp").addEventListener("click", sendOtp);
+  </script>
+</body>
+</html>
