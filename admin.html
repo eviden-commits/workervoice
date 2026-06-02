@@ -1,14 +1,15 @@
-@ -0,0 +1,232 @@
-<!doctype html>
-<html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Worker Voice Admin</title>
+  <title>Worker Voice 관리자 대시보드</title>
   <style>
     :root {
       --bg:#f5f5f7; --surface:#fff; --text:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --brand:#0071e3;
       --r:14px;
+      --bg: #f5f5f7; --surface: #ffffff; --text: #1d1d1f; --muted: #86868b;
+      --primary: #1a2b47; --secondary: #0070eb; --border: #d2d2d7; --radius: 12px;
+      --low: #34c759; --medium: #ff9f0a; --high: #ff3b30; --critical: #af52de;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
@@ -29,6 +30,59 @@
     th,td{border-bottom:1px solid var(--line);padding:8px;vertical-align:top;font-size:13px}
     th{color:var(--muted);text-align:left}
     .pill{padding:2px 8px;border-radius:999px;background:#eef4ff;color:#1f5fbf;font-size:12px}
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    
+    .topbar { height: 64px; background: var(--primary); display: flex; align-items: center; padding: 0 24px; color: #fff; justify-content: space-between; }
+    .brand { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+    .logout-btn { background: rgba(255,255,255,0.1); border: 0; color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    
+    .container { max-width: 1200px; margin: 40px auto; padding: 0 24px; }
+    
+    .card { background: var(--surface); border-radius: var(--radius); padding: 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.04); }
+    
+    .login-box { max-width: 400px; margin: 80px auto; }
+    .login-title { font-size: 24px; font-weight: 700; margin: 0 0 8px; text-align: center; color: #111f3f; }
+    .login-sub { text-align: center; color: var(--muted); margin-bottom: 24px; }
+    
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; margin-top: 16px; }
+    input, select, textarea { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 8px; font: inherit; color: var(--text); transition: all 0.2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(0,112,235,0.1); }
+    textarea { min-height: 100px; resize: vertical; }
+    
+    button.btn { width: 100%; border: 0; background: var(--secondary); color: #fff; font-size: 15px; font-weight: 600; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 24px; }
+    button.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    
+    .filter-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+    .filter-bar input, .filter-bar select { max-width: 200px; margin: 0; }
+    
+    .table-container { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; }
+    th { background: #f9f9fb; padding: 14px 16px; color: var(--muted); font-weight: 600; font-size: 13px; border-bottom: 1px solid var(--border); }
+    td { padding: 14px 16px; border-bottom: 1px solid #f0f0f5; color: #111f3f; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f5f5f7; cursor: pointer; }
+    
+    .pill { display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; color: #fff; }
+    .status-active { background: #0070eb; } .status-in_review { background: #ff9f0a; } .status-done { background: #34c759; } .status-hold { background: #86868b; }
+    .risk-low { background: var(--low); } .risk-medium { background: var(--medium); } .risk-high { background: var(--high); } .risk-critical { background: var(--critical); }
+    
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+    .modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #f9f9fb; }
+    .modal-title { font-size: 18px; font-weight: 700; color: #111f3f; margin: 0; }
+    .close-btn { background: transparent; border: 0; font-size: 24px; color: var(--muted); cursor: pointer; padding: 0; line-height: 1; }
+    .modal-body { padding: 24px; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .data-box { background: #f5f5f7; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #44474d; line-height: 1.5; }
+    .data-box strong { color: #111f3f; display: block; margin-bottom: 4px; }
+    
+    .toggle { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+    .toggle input[type="checkbox"] { width: 20px; height: 20px; margin: 0; cursor: pointer; }
+    
+    .notice { text-align: center; font-size: 13px; color: var(--high); margin-top: 12px; height: 20px; }
   </style>
 </head>
 <body>
@@ -40,7 +94,31 @@
           <div class="muted">등록된 이메일 기준으로 본인 현장 건만 조회/수정합니다.</div>
         </div>
         <label class="token-mini">Admin Token <input id="adminToken" placeholder="token" /></label>
+
+  <header class="topbar">
+    <div class="brand">Worker Voice Admin</div>
+    <button class="logout-btn" id="btnLogout" style="display:none;" onclick="location.reload()">로그아웃</button>
+  </header>
+
+  <main class="container">
+    
+    <div id="loginView" class="card login-box">
+      <h1 class="login-title">관리자 로그인</h1>
+      <p class="login-sub">현장 권한 확인을 위해 이메일을 입력해 주세요.</p>
+      
+      <div id="step1">
+        <label>이메일 주소</label>
+        <input type="email" id="emailInput" placeholder="관리자 이메일 입력" />
+        <button class="btn" id="btnRequestOtp">인증 요청</button>
       </div>
+
+      <div id="step2" style="display:none;">
+        <label id="authLabel">인증번호 (메일 확인)</label>
+        <input type="password" id="authInput" placeholder="인증 정보 입력" />
+        <button class="btn" id="btnLogin">로그인</button>
+      </div>
+      
+      <div class="notice" id="loginMsg"></div>
     </div>
 
     <div class="card">
@@ -71,6 +149,39 @@
           </select>
         </label>
         <button class="btn" id="btnLoad">조회</button>
+    <div id="dashboardView" style="display:none;">
+      <div class="filter-bar">
+        <select id="filterStatus">
+          <option value="">모든 상태</option>
+          <option value="active">처리중</option>
+          <option value="in_review">검토중</option>
+          <option value="hold">보류</option>
+          <option value="done">조치완료</option>
+        </select>
+        <button class="btn" id="btnRefresh" style="width:auto; margin-top:0;">새로고침</button>
+        <div style="flex:1;"></div>
+        <div style="align-self:center; color:var(--muted); font-size:13px;" id="recordCount"></div>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>상태</th>
+                <th>위험도</th>
+                <th>접수일</th>
+                <th>현장명</th>
+                <th>카테고리</th>
+                <th>제목</th>
+                <th>담당자</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="7" style="text-align:center; padding:40px;">데이터를 불러오는 중입니다...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="muted" id="msg" style="margin-top:8px">준비됨</div>
     </div>
@@ -85,10 +196,86 @@
         </thead>
         <tbody id="tbody"></tbody>
       </table>
+  </main>
+
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">의견 상세 및 조치</h2>
+        <button class="close-btn" id="btnCloseModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="grid-2">
+          <div class="data-box">
+            <strong>접수자 정보</strong>
+            <span id="mReporter"></span>
+          </div>
+          <div class="data-box">
+            <strong>현장 및 일정</strong>
+            <span id="mSiteInfo"></span>
+          </div>
+        </div>
+
+        <div class="data-box">
+          <strong>제보 내용</strong>
+          <div id="mContent" style="white-space: pre-wrap;"></div>
+          <div id="mAttach" style="margin-top:12px;"></div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); margin: 24px 0;"></div>
+        
+        <div class="grid-2">
+          <div>
+            <label>처리 상태</label>
+            <select id="eStatus">
+              <option value="active">처리중</option>
+              <option value="in_review">검토중</option>
+              <option value="hold">보류</option>
+              <option value="done">조치완료</option>
+            </select>
+          </div>
+          <div>
+            <label>위험도 분류</label>
+            <select id="eRisk">
+              <option value="low">낮음</option>
+              <option value="medium">보통</option>
+              <option value="high">높음</option>
+              <option value="critical">긴급</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label>담당자 배정</label>
+            <input type="text" id="eOwner" placeholder="담당자 이름/부서" />
+          </div>
+          <div>
+            <label>처리 목표일</label>
+            <input type="date" id="eDueDate" />
+          </div>
+        </div>
+
+        <label>조치 계획 및 결과 내용</label>
+        <textarea id="eNote" placeholder="근로자에게 안내될 상세 조치내용을 작성해 주세요."></textarea>
+        
+        <div class="toggle">
+          <input type="checkbox" id="eNotify" checked />
+          <span style="font-size: 13px; color: var(--text);">저장 시 접수자에게 진행현황 알림 메일 발송 (이메일이 있는 경우)</span>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:24px;">
+          <button class="btn btn-outline" id="btnCancelModal">취소</button>
+          <button class="btn" id="btnSaveUpdate" style="margin-top:0;">업데이트 저장</button>
+        </div>
+
+      </div>
     </div>
   </div>
 
   <script>
+    // 주의: 배포 후 발급받은 실제 GAS URL로 교체해야 합니다.
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyEhd91bxscWGtnLiEwb74vpEcEsNicXHaEdquyLjEkY3-Wxrv-5_5OMoF3f0s6NRzG/exec";
     const contactEmailEl = document.getElementById("contactEmail");
     const adminTokenEl = document.getElementById("adminToken");
@@ -98,22 +285,45 @@
     const notifyMailEl = document.getElementById("notifyMail");
     const msgEl = document.getElementById("msg");
     const tbody = document.getElementById("tbody");
+    
+    let authEmail = "";
+    let authCode = "";
+    let isMasterMode = false;
+    let records = [];
+    let currentId = "";
+
     const statusLabel = { active: "처리중", in_review: "검토중", done: "완료", hold: "보류" };
+    const riskLabel = { low: "낮음", medium: "보통", high: "높음", critical: "긴급" };
 
     contactEmailEl.value = localStorage.getItem("wv_contact_email") || "";
     adminTokenEl.value = localStorage.getItem("wv_admin_token") || "";
+    const loginView = document.getElementById("loginView");
+    const dashboardView = document.getElementById("dashboardView");
+    const editModal = document.getElementById("editModal");
+    const loginMsg = document.getElementById("loginMsg");
+    const tableBody = document.getElementById("tableBody");
 
     function esc(v){
       return String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
     }
     function setMsg(t){ msgEl.textContent = t; }
+    function esc(v){ return String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
 
     function jsonp(url, cb){
       const name = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
       window[name] = function(res){ cb(res); delete window[name]; };
       url.searchParams.set("callback", name);
+    function jsonp(urlParams, onOk, onError){
+      const url = new URL(GAS_URL);
+      for(let key in urlParams) url.searchParams.set(key, urlParams[key]);
+      const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*1000);
+      let done = false;
+      const timer = setTimeout(() => { if(done) return; done = true; delete window[cb]; onError && onError("요청 시간 초과"); }, 10000);
+      window[cb] = function(res){ if(done) return; done = true; clearTimeout(timer); delete window[cb]; onOk(res); };
+      url.searchParams.set("callback", cb);
       const s = document.createElement("script");
       s.src = url.toString();
+      s.onerror = () => { if(done) return; done = true; clearTimeout(timer); delete window[cb]; onError && onError("네트워크 오류"); };
       s.onload = () => s.remove();
       document.body.appendChild(s);
     }
@@ -123,6 +333,14 @@
       if(!contactEmail){ setMsg("연락받은 이메일을 입력하세요."); return; }
       localStorage.setItem("wv_contact_email", contactEmail);
       localStorage.setItem("wv_admin_token", adminTokenEl.value.trim());
+    // 1. 이메일 인증 요청
+    document.getElementById("btnRequestOtp").addEventListener("click", () => {
+      const email = document.getElementById("emailInput").value.trim();
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { loginMsg.textContent = "유효한 이메일을 입력해 주세요."; return; }
+      
+      authEmail = email;
+      loginMsg.textContent = "권한을 확인하는 중입니다...";
+      document.getElementById("btnRequestOtp").disabled = true;
 
       const url = new URL(GAS_URL);
       url.searchParams.set("action", "site_list");
@@ -135,11 +353,28 @@
         if (!res || !res.ok) {
           setMsg(`조회 실패: ${(res && res.error) ? res.error : "unknown error"}`);
           return;
+      jsonp({ action: "send_site_otp", contact_email: authEmail }, (res) => {
+        document.getElementById("btnRequestOtp").disabled = false;
+        if(!res || !res.ok) { loginMsg.textContent = res.error || "등록되지 않은 이메일입니다."; return; }
+        
+        document.getElementById("step1").style.display = "none";
+        document.getElementById("step2").style.display = "block";
+        
+        isMasterMode = res.is_master;
+        if(isMasterMode) {
+          document.getElementById("authLabel").textContent = "관리자 비밀번호 입력";
+          loginMsg.textContent = "마스터 권한이 확인되었습니다. 비밀번호를 입력해 주세요.";
+        } else {
+          loginMsg.textContent = "메일로 전송된 6자리 인증번호를 입력해 주세요.";
         }
         renderRows(res.items || []);
         setMsg(`조회 완료: ${(res.items || []).length}건 / 현장: ${(res.allowed_sites || []).join(", ") || "-"}`);
+      }, (err) => {
+        document.getElementById("btnRequestOtp").disabled = false;
+        loginMsg.textContent = err;
       });
     }
+    });
 
     function sendOtp(){
       const contactEmail = contactEmailEl.value.trim();
@@ -151,22 +386,68 @@
       jsonp(url, (res) => {
         if (!res || !res.ok) {
           setMsg(`인증번호 발송 실패: ${(res && res.error) ? res.error : "unknown error"}`);
+    // 2. 로그인 및 데이터 로드
+    document.getElementById("btnLogin").addEventListener("click", loadData);
+    document.getElementById("btnRefresh").addEventListener("click", loadData);
+    document.getElementById("filterStatus").addEventListener("change", loadData);
+
+    function loadData() {
+      const codeInput = document.getElementById("authInput").value.trim();
+      if(!authCode && !codeInput) { loginMsg.textContent = "인증 정보를 입력해 주세요."; return; }
+      if(codeInput) authCode = codeInput;
+
+      const statusVal = document.getElementById("filterStatus").value;
+      const btnLog = document.getElementById("btnLogin");
+      const btnRef = document.getElementById("btnRefresh");
+      btnLog.disabled = true; btnRef.disabled = true;
+      if(loginView.style.display !== "none") loginMsg.textContent = "데이터를 불러오는 중입니다...";
+
+      jsonp({ action: "site_list", contact_email: authEmail, status: statusVal }, (res) => {
+        btnLog.disabled = false; btnRef.disabled = false;
+        if(!res || !res.ok) {
+          if(loginView.style.display !== "none") loginMsg.textContent = "인증 실패: 정보를 다시 확인해 주세요.";
+          else alert("데이터 갱신 실패");
+          authCode = ""; 
           return;
         }
         if (res.is_master) setMsg("마스터 이메일은 인증번호 없이 Admin Token으로 저장합니다.");
         else setMsg("인증번호를 이메일로 보냈습니다. 입력 후 저장하세요.");
+
+        // 로그인 성공 시 뷰 전환
+        loginView.style.display = "none";
+        dashboardView.style.display = "block";
+        document.getElementById("btnLogout").style.display = "block";
+        
+        records = res.items || [];
+        document.getElementById("recordCount").textContent = `총 ${records.length}건`;
+        renderTable();
+      }, (err) => {
+        btnLog.disabled = false; btnRef.disabled = false;
+        if(loginView.style.display !== "none") loginMsg.textContent = err;
       });
     }
 
     function renderRows(items){
       if(!items.length){
         tbody.innerHTML = '<tr><td colspan="12">조회 가능한 데이터가 없습니다.</td></tr>';
+    function renderTable() {
+      if(!records.length) {
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--muted);">해당 조건의 접수 내역이 없습니다.</td></tr>`;
         return;
       }
       tbody.innerHTML = items.map(it => `
         <tr data-id="${esc(it.id)}">
           <td><span class="pill">${esc(it.id)}</span></td>
           <td>${esc(it.created_at)}</td>
+
+      tableBody.innerHTML = records.map(it => {
+        const risk = it.risk_level || "medium";
+        const stat = it.status || "active";
+        return `<tr onclick="openEdit('${it.id}')">
+          <td><span class="pill status-${stat}">${statusLabel[stat] || stat}</span></td>
+          <td><span class="pill risk-${risk}">${riskLabel[risk] || risk}</span></td>
+          <td style="color:var(--muted); font-size:13px;">${String(it.created_at).substring(0,10)}</td>
+          <td style="font-weight:600;">${esc(it.site_name)}</td>
           <td>${esc(it.category)}</td>
           <td>${esc(it.title)}</td>
           <td>${esc(it.site_name)}</td>
@@ -193,15 +474,31 @@
           <td><button class="btn ghost" onclick="saveRow(this)">저장</button></td>
         </tr>
       `).join("");
+          <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis;">${esc(it.title)}</td>
+          <td>${esc(it.action_owner) || '<span style="color:#c5c6ce;">미배정</span>'}</td>
+        </tr>`;
+      }).join("");
     }
 
     window.saveRow = function(btn){
       const token = adminTokenEl.value.trim();
       if(!token){ setMsg("Admin Token을 입력하세요."); return; }
+    // 3. 모달 열기 및 수정
+    function openEdit(id) {
+      const it = records.find(r => r.id === id);
+      if(!it) return;
+      currentId = id;
 
       const tr = btn.closest("tr");
       const data = { id: tr.dataset.id };
       tr.querySelectorAll("[data-k]").forEach(el => data[el.dataset.k] = el.value.trim());
+      document.getElementById("modalTitle").textContent = `의견 조치 [${id}]`;
+      
+      const isAnon = it.is_anonymous === "TRUE";
+      const repHtml = isAnon 
+        ? "익명 접수건" 
+        : `이름: ${esc(it.reporter_name)}<br>연락처: ${esc(it.reporter_contact)}<br>메일: ${esc(it.reporter_email)}`;
+      document.getElementById("mReporter").innerHTML = repHtml;
 
       const url = new URL(GAS_URL);
       url.searchParams.set("action", "admin_update");
@@ -223,8 +520,66 @@
       jsonp(url, (res) => {
         if (res && res.ok) setMsg(`저장 완료: ${data.id}${res.mail_sent ? " (메일발송 완료)" : ""}`);
         else setMsg(`저장 실패: ${(res && res.error) ? res.error : "unknown error"}`);
+      document.getElementById("mSiteInfo").innerHTML = `접수일: ${esc(it.created_at)}<br>목표일: ${esc(it.due_date)}<br>현장명: <strong>${esc(it.site_name)}</strong>`;
+      document.getElementById("mContent").textContent = it.content;
+
+      let attachHtml = "";
+      if(it.attachment_urls) {
+        const urls = it.attachment_urls.split("\n");
+        attachHtml = urls.map((u, i) => `<a href="${u}" target="_blank" style="color:var(--secondary); text-decoration:none; margin-right:12px; font-weight:600;">📎 첨부파일 ${i+1}</a>`).join("");
+      }
+      document.getElementById("mAttach").innerHTML = attachHtml || "<span style='color:var(--muted);'>첨부파일 없음</span>";
+
+      document.getElementById("eStatus").value = it.status || "active";
+      document.getElementById("eRisk").value = it.risk_level || "medium";
+      document.getElementById("eOwner").value = it.action_owner || "";
+      document.getElementById("eDueDate").value = it.due_date || "";
+      document.getElementById("eNote").value = it.action_note || "";
+      
+      document.getElementById("eNotify").checked = (!isAnon && !!it.reporter_email);
+      document.getElementById("eNotify").disabled = (isAnon || !it.reporter_email);
+
+      editModal.style.display = "flex";
+    }
+
+    document.getElementById("btnCloseModal").addEventListener("click", () => editModal.style.display = "none");
+    document.getElementById("btnCancelModal").addEventListener("click", () => editModal.style.display = "none");
+
+    document.getElementById("btnSaveUpdate").addEventListener("click", () => {
+      const btn = document.getElementById("btnSaveUpdate");
+      btn.disabled = true;
+      btn.textContent = "저장 중...";
+
+      const params = {
+        action: "admin_update",
+        contact_email: authEmail,
+        id: currentId,
+        status: document.getElementById("eStatus").value,
+        risk_level: document.getElementById("eRisk").value,
+        action_owner: document.getElementById("eOwner").value,
+        due_date: document.getElementById("eDueDate").value,
+        action_note: document.getElementById("eNote").value,
+        notify: document.getElementById("eNotify").checked ? "TRUE" : "FALSE"
+      };
+
+      if(isMasterMode) params.token = authCode;
+      else params.site_otp = authCode;
+
+      jsonp(params, (res) => {
+        btn.disabled = false;
+        btn.textContent = "업데이트 저장";
+        if(!res || !res.ok) { alert("저장 실패: " + (res.error || "오류")); return; }
+        
+        alert(res.mail_sent ? "저장 완료 (제보자에게 알림 메일이 발송되었습니다)" : "저장 완료");
+        editModal.style.display = "none";
+        loadData(); // 목록 새로고침
+      }, (err) => {
+        btn.disabled = false;
+        btn.textContent = "업데이트 저장";
+        alert("통신 오류: " + err);
       });
     };
+    });
 
     document.getElementById("btnLoad").addEventListener("click", loadRows);
     document.getElementById("btnSendOtp").addEventListener("click", sendOtp);
