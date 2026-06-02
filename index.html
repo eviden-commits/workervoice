@@ -127,7 +127,9 @@
           </div>
 
           <button class="submit-btn" id="submitBtn" type="submit" style="margin-top:14px;">보고서 제출하기</button>
-          <div style="margin-top:10px;" class="g-recaptcha" data-sitekey="6LddEQgtAAAAAM8zq-90lWoC40XAuqCmOpe5uT3u"></div>
+          
+          <div style="margin-top:10px; transform: scale(0.85); transform-origin: 0 0;" class="g-recaptcha" data-sitekey="6LddEQgtAAAAAM8zq-90lWoC40XAuqCmOpe5uT3u"></div>
+          
           <div class="notice" id="submitMsg">접수 대기 중</div>
           <div class="success" id="receiptMsg" style="display:none;"></div>
         </form>
@@ -140,6 +142,11 @@
           <input id="receiptNoInput" maxlength="4" placeholder="접수번호 4자리 입력" />
           <button class="lookup-btn" id="btnLookup">조회</button>
         </div>
+        
+        <div style="text-align: right; margin-bottom: 12px;">
+          <a href="#" id="btnFindReceipt" style="font-size: 13px; color: var(--secondary); text-decoration: none; font-weight: 600;">접수번호 잊으셨나요?</a>
+        </div>
+        
         <div id="list"><p class="notice">접수번호로 조회하면 처리결과를 확인할 수 있습니다.</p></div>
       </section>
     </div>
@@ -247,6 +254,7 @@
       }).join("");
     }
 
+    // 접수번호 4자리 검증 오타 수정 (\d)
     function lookupByReceipt(){
       const receipt = (receiptNoInput.value || "").trim();
       if(!/^\d{4}$/.test(receipt)){ listEl.innerHTML = '<p class="notice">접수번호 4자리를 입력해 주세요.</p>'; return; }
@@ -271,12 +279,40 @@
       });
     });
 
+    // 모바일 입력 충돌 방지를 위해 input 대신 blur로 변경
     reporterName.addEventListener("blur", () => { const v = sanitizeName(reporterName.value); if(v !== reporterName.value) reporterName.value = v; });
     reporterContact.addEventListener("input", () => { const v = sanitizePhone(reporterContact.value); if(v !== reporterContact.value) reporterContact.value = v; });
     isAnonymousToggle.addEventListener("change", setIdentityMode);
     categoryEl.addEventListener("change", renderTitleTemplates);
     titleTemplateEl.addEventListener("change", onTemplateChange);
     document.getElementById("btnLookup").addEventListener("click", lookupByReceipt);
+
+    // 접수번호 찾기 기능 추가
+    document.getElementById("btnFindReceipt").addEventListener("click", (e) => {
+      e.preventDefault();
+      const email = prompt("접수 시 입력했던 이메일 주소를 입력해 주세요.\n(익명 접수건은 조회가 불가능합니다)");
+      if (!email) return;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert("유효한 이메일 주소를 입력해 주세요.");
+        return;
+      }
+
+      const url = new URL(GAS_URL);
+      url.searchParams.set("action", "find_receipt");
+      url.searchParams.set("email", email);
+
+      listEl.innerHTML = '<p class="notice">이메일로 접수번호를 발송 중입니다...</p>';
+
+      jsonp(url, (res) => {
+        if (!res || !res.ok) {
+          listEl.innerHTML = `<p class="notice" style="color: var(--high);">조회 실패: ${esc((res && res.error) || "알 수 없는 오류")}</p>`;
+          return;
+        }
+        listEl.innerHTML = `<p class="notice" style="color: var(--low); font-weight: 600;">${esc(res.message)}</p>`;
+      }, (reason) => {
+        listEl.innerHTML = `<p class="notice" style="color: var(--high);">조회 실패: ${esc(reason)}</p>`;
+      });
+    });
 
     voiceForm.addEventListener("submit", async (ev) => {
       ev.preventDefault();
@@ -301,8 +337,7 @@
         attachmentBase64.value = ""; attachmentName.value = ""; attachmentMime.value = "";
       }
 
-      // [핵심 해결 로직] disabled 상태인 필드는 폼 전송 시 데이터가 누락되므로 
-      // 제출 직전에 모두 disabled 해제
+      // 폼 제출 직전 비활성화(disabled) 해제
       titleInputEl.disabled = false;
       reporterName.disabled = false;
       reporterContact.disabled = false;
@@ -354,7 +389,6 @@
       receiptNoInput.value = receipt;
       if(window.grecaptcha) grecaptcha.reset();
       
-      // 폼 제출 완료 후 다시 초기 상태로 복구
       setIdentityMode();
       onTemplateChange();
     });
