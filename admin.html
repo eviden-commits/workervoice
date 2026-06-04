@@ -112,7 +112,7 @@
             <span class="material-symbols-outlined text-[#0070eb] text-xl">filter_list</span>
             <h3 class="font-bold text-[16px]">데이터 필터링 및 조회</h3>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-[11px] font-bold text-on-surface-variant mb-1">진행 상태</label>
               <select id="fStatus" class="w-full px-3 py-2 bg-surface-bright border border-outline-variant rounded-lg text-sm cursor-pointer focus:ring-1 focus:ring-secondary">
@@ -132,8 +132,11 @@
                 <option value="기타관리">기타관리</option>
               </select>
             </div>
-            <div class="flex flex-col justify-end">
-              <button id="btnLoad" class="w-full h-[38px] bg-[#0070eb] text-white text-[14px] font-bold rounded-lg hover:brightness-110 shadow-sm transition-all">데이터 조회하기</button>
+            <div class="flex flex-col justify-end md:col-span-2 md:flex-row gap-2">
+              <button id="btnLoad" class="flex-1 h-[38px] bg-[#0070eb] text-white text-[14px] font-bold rounded-lg hover:brightness-110 shadow-sm transition-all">데이터 조회하기</button>
+              <button id="btnExportPdf" class="flex-1 h-[38px] bg-white border border-outline-variant/70 text-on-surface-variant text-[14px] font-bold rounded-lg hover:bg-surface-container-low shadow-sm transition-all flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span> 보고서 출력
+              </button>
             </div>
           </div>
           <div class="mt-4 flex items-center justify-between">
@@ -219,7 +222,6 @@
 </main>
 
 <script>
-  // 배포된 GAS URL 적용
   const GAS_URL = "https://script.google.com/macros/s/AKfycbyEhd91bxscWGtnLiEwb74vpEcEsNicXHaEdquyLjEkY3-Wxrv-5_5OMoF3f0s6NRzG/exec";
 
   const contactEmailEl = document.getElementById("contactEmail");
@@ -231,21 +233,21 @@
   const msgEl = document.getElementById("msg");
   const tbody = document.getElementById("tbody");
 
-  // 색상 맵핑 (Tailwind 색상 코드 반영)
+  let currentRecords = [];
+
   const riskColors = {
-    "low": "#34c759",       // Green
-    "medium": "#ff9500",    // Orange
-    "high": "#ff3b30",      // Red
-    "critical": "#af52de"   // Purple
+    "low": "#34c759",       
+    "medium": "#ff9500",    
+    "high": "#ff3b30",      
+    "critical": "#af52de"   
   };
   const statusColors = {
-    "active": "#0070eb",    // Blue
-    "in_review": "#ff9500", // Orange
-    "done": "#34c759",      // Green
-    "hold": "#86868b"       // Gray
+    "active": "#0070eb",    
+    "in_review": "#ff9500", 
+    "done": "#34c759",      
+    "hold": "#86868b"       
   };
 
-  // 로컬 스토리지에서 기존 입력값 불러오기
   contactEmailEl.value = localStorage.getItem("wv_contact_email") || "";
   adminTokenEl.value = localStorage.getItem("wv_admin_token") || "";
 
@@ -265,7 +267,6 @@
     document.body.appendChild(s);
   }
 
-  // 통계 업데이트
   function updateStats(items) {
     let active = 0, inReview = 0, critical = 0, done = 0;
     items.forEach(it => {
@@ -280,7 +281,6 @@
     document.getElementById('statDone').innerText = done + '건';
   }
 
-  // 데이터 불러오기
   function loadRows(){
     const contactEmail = contactEmailEl.value.trim();
     if(!contactEmail){ setMsg("이메일을 먼저 입력해 주세요.", true); return; }
@@ -300,13 +300,13 @@
         return;
       }
       const items = res.items || [];
+      currentRecords = items;
       renderRows(items);
       updateStats(items);
       setMsg(`조회 완료: 총 ${items.length}건 (접근 현장: ${(res.allowed_sites || []).join(", ") || "전체"})`);
     });
   }
 
-  // 인증번호 발송
   function sendOtp(){
     const contactEmail = contactEmailEl.value.trim();
     if(!contactEmail){ setMsg("이메일을 입력해 주세요.", true); return; }
@@ -325,7 +325,6 @@
     });
   }
 
-  // 테이블 렌더링
   function renderRows(items){
     if(!items.length){
       tbody.innerHTML = '<tr><td colspan="12" class="py-12 text-center text-[14px] text-on-surface-variant">해당 조건의 접수 내역이 없습니다.</td></tr>';
@@ -375,13 +374,11 @@
     }).join("");
   }
 
-  // Select 박스 색상 실시간 변경용 함수
   window.updateSelectColor = function(selectEl, type) {
     if(type === 'risk') selectEl.style.backgroundColor = riskColors[selectEl.value];
     if(type === 'status') selectEl.style.backgroundColor = statusColors[selectEl.value];
   };
 
-  // 개별 행 업데이트 저장
   window.saveRow = function(btn){
     const token = adminTokenEl.value.trim();
     const contactEmail = contactEmailEl.value.trim();
@@ -417,7 +414,6 @@
       btn.textContent = "저장";
       if (res && res.ok) {
         setMsg(`[${data.id}] 업데이트 완료 ${res.mail_sent ? " (제보자 회신 메일 발송됨)" : ""}`);
-        // 저장 성공 시 약간의 시각적 피드백
         tr.style.backgroundColor = "rgba(52, 199, 89, 0.1)";
         setTimeout(() => tr.style.backgroundColor = "", 1000);
       } else {
@@ -426,7 +422,198 @@
     });
   };
 
-  // 초기 애니메이션 및 이벤트 리스너
+  // --- 외주 디자인 출력 기능 결합 부분 ---
+  document.getElementById("btnExportPdf").addEventListener("click", () => {
+    if (!currentRecords || currentRecords.length === 0) {
+      alert("출력할 데이터가 없습니다. 먼저 조회를 진행해 주세요.");
+      return;
+    }
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+    const todayStr = `${currentYear}.${currentMonth}.${String(today.getDate()).padStart(2, '0')}`;
+    const monthPrefix = `${currentYear}-${currentMonth}`;
+
+    const tokenVal = document.getElementById("adminToken").value.trim();
+    const uniqueSites = [...new Set(currentRecords.map(r => r.site_name))];
+    const headerSiteName = uniqueSites.length === 1 ? uniqueSites[0] : "통합 보고서";
+    const footerDeptName = tokenVal ? "품질안전보건실" : headerSiteName;
+
+    const periodRecords = currentRecords.filter(r => String(r.created_at).startsWith(monthPrefix));
+    const totalPeriod = periodRecords.length;
+    const donePeriod = periodRecords.filter(r => r.status === 'done').length;
+    const ratePeriod = totalPeriod > 0 ? Math.round((donePeriod / totalPeriod) * 100) : 0;
+
+    const catCount = { "안전관리": 0, "노무관리": 0, "기타관리": 0 };
+    periodRecords.forEach(r => { if (catCount[r.category] !== undefined) catCount[r.category]++; });
+    let topCategory = "안전관리";
+    let topCatCount = 0;
+    for (const [cat, count] of Object.entries(catCount)) {
+      if (count > topCatCount) { topCategory = cat; topCatCount = count; }
+    }
+    const topCatRate = totalPeriod > 0 ? Math.round((topCatCount / totalPeriod) * 100) : 0;
+    const topCatName = topCategory.replace("관리", ""); 
+
+    const ytdRecords = currentRecords.filter(r => String(r.created_at).startsWith(String(currentYear)));
+    const ytdTotal = ytdRecords.length;
+
+    const badgeStyle = {
+      "low": { text: "낮음", class: "border-[#34c759] text-[#34c759]" },
+      "medium": { text: "보통", class: "border-[#ff9500] text-[#ff9500]" },
+      "high": { text: "높음", class: "border-[#ff3b30] text-[#ff3b30]" },
+      "critical": { text: "긴급", class: "border-[#af52de] text-[#af52de]" },
+      "done": { text: "조치완료", class: "border-[#34c759] text-[#34c759]" },
+      "active": { text: "처리중", class: "border-[#0070eb] text-[#0070eb]" },
+      "in_review": { text: "검토중", class: "border-[#ff9500] text-[#ff9500]" },
+      "hold": { text: "보류", class: "border-[#86868b] text-[#86868b]" }
+    };
+
+    let rowsHtml = periodRecords.map(it => {
+      const reporterName = it.is_anonymous === "TRUE" ? "익명" : `${esc(it.reporter_name)}`;
+      const displayStatus = it.status === 'done' ? 'done' : it.risk_level;
+      const bStyle = badgeStyle[displayStatus] || { text: it.status, class: "border-[#44474d] text-[#44474d]" };
+      
+      return `
+        <tr class="page-break-avoid">
+          <td class="py-4 px-4 font-body-sm text-body-sm">${String(it.created_at).substring(0, 10).replace(/-/g, '.')}</td>
+          <td class="py-4 px-4 font-body-sm text-body-sm">${reporterName}</td>
+          <td class="py-4 px-4 font-body-sm text-body-sm max-w-[200px] truncate" title="${esc(it.title)}">${esc(it.title)}</td>
+          <td class="py-4 px-4 font-body-sm text-body-sm">${esc(it.action_owner) || '-'}</td>
+          <td class="py-4 px-4">
+            <span class="status-badge ${bStyle.class}">${bStyle.text}</span>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    if(periodRecords.length === 0) {
+      rowsHtml = `<tr><td colspan="5" class="py-10 text-center font-body-sm text-outline-variant">해당 기간에 접수된 내역이 없습니다.</td></tr>`;
+    }
+
+    const printWindow = window.open('', '_blank');
+    const html = `
+      <!DOCTYPE html>
+      <html lang="ko">
+      <head>
+        <meta charset="utf-8"/>
+        <title>Worker Voice 월간 조치 현황 보고서</title>
+        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"><\/script>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+        <style>
+          body { font-family: 'Inter', -apple-system, sans-serif; background-color: #f9f9fb; color: #1a2b47; -webkit-font-smoothing: antialiased; }
+          @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { width: 210mm; height: 297mm; padding: 20mm; background-color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-shadow-none { box-shadow: none !important; }
+            .page-break-avoid { page-break-inside: avoid; }
+          }
+          .approval-box { border: 1px solid #c5c6ce; }
+          .approval-cell { border-left: 1px solid #c5c6ce; width: 60px; }
+          .approval-header { border-bottom: 1px solid #c5c6ce; background-color: #f3f3f5; padding: 2px 0; text-align: center; font-size: 10px; font-weight: 600; }
+          .approval-stamp { height: 40px; }
+          .status-badge { padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; border-width: 1.5px; }
+          .writing-mode-vertical-rl { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 2px; }
+        </style>
+      </head>
+      <body class="bg-surface flex justify-center py-10">
+        <div class="w-[210mm] min-h-[297mm] bg-white p-[20mm] shadow-2xl print-shadow-none relative overflow-hidden flex flex-col">
+          
+          <header class="flex justify-between items-start mb-6">
+            <div class="flex flex-col gap-2">
+              <p class="text-[14px] text-[#44474d]">현장명 : <strong style="color: #1a1c1d;">${esc(headerSiteName)}</strong></p>
+              <p class="text-[14px] text-[#44474d]">조회 기간: ${currentYear}.${currentMonth}.01 ~ ${currentYear}.${currentMonth}.31</p>
+              <p class="text-[14px] text-[#44474d]">출력 일자: ${todayStr}</p>
+            </div>
+            <div class="flex approval-box">
+              <div class="flex items-center justify-center px-2 bg-[#f3f3f5] font-bold text-[10px] writing-mode-vertical-rl">결재</div>
+              <div class="approval-cell border-l-0"><div class="approval-header">작성</div><div class="approval-stamp"></div></div>
+              <div class="approval-cell"><div class="approval-header">검토</div><div class="approval-stamp"></div></div>
+              <div class="approval-cell"><div class="approval-header">승인</div><div class="approval-stamp"></div></div>
+            </div>
+          </header>
+
+          <section class="grid grid-cols-4 gap-4 mb-10">
+            <div class="bg-white border border-[#c5c6ce] p-4 rounded-xl shadow-sm">
+              <p class="text-[12px] font-bold text-[#44474d] mb-1">월간 총 접수</p>
+              <div class="flex items-baseline gap-1"><span class="text-[32px] font-bold text-[#031631]">${totalPeriod}</span><span class="text-[14px] text-[#44474d]">건</span></div>
+            </div>
+            <div class="bg-white border border-[#c5c6ce] p-4 rounded-xl shadow-sm">
+              <p class="text-[12px] font-bold text-[#44474d] mb-1">카테고리 집중도</p>
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between items-center text-[11px]"><span class="font-medium">${topCatName}</span><span class="font-bold">${topCatRate}%</span></div>
+                <div class="w-full bg-[#eeeef0] h-1.5 rounded-full overflow-hidden"><div class="bg-[#0058bc] h-full" style="width: ${topCatRate}%"></div></div>
+              </div>
+            </div>
+            <div class="bg-white border border-[#c5c6ce] p-4 rounded-xl shadow-sm">
+              <p class="text-[12px] font-bold text-[#44474d] mb-1">월간 조치율</p>
+              <div class="flex items-baseline gap-1"><span class="text-[32px] font-bold text-[#0058bc]">${ratePeriod}</span><span class="text-[14px] text-[#0070eb] font-bold">%</span></div>
+            </div>
+            <div class="bg-white border border-[#c5c6ce] p-4 rounded-xl shadow-sm">
+              <p class="text-[12px] font-bold text-[#44474d] mb-1">연간 누적 통계</p>
+              <div class="flex items-baseline gap-1"><span class="text-[32px] font-bold text-[#031631]">${ytdTotal.toLocaleString()}</span><span class="text-[14px] text-[#44474d]">건</span></div>
+            </div>
+          </section>
+
+          <section class="flex-grow mb-10">
+            <h2 class="text-[20px] font-bold text-[#031631] mb-4 border-l-4 border-[#0058bc] pl-3">주요 조치 현황 리스트</h2>
+            <div class="w-full overflow-hidden">
+              <table class="w-full text-left">
+                <thead>
+                  <tr class="border-y border-[#c5c6ce] bg-[#f3f3f5]">
+                    <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">접수일</th>
+                    <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">제보자</th>
+                    <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">제보 내용(요약)</th>
+                    <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">담당자</th>
+                    <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">상태/위험도</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#c5c6ce]">
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <footer class="mt-auto">
+            <h2 class="text-[20px] font-bold text-[#031631] mb-4 border-l-4 border-[#0058bc] pl-3">경영진 검토 의견</h2>
+            <div class="w-full border-2 border-dashed border-[#c5c6ce] rounded-xl p-8 min-h-[120px] bg-white">
+              <p class="text-[#44474d] text-[16px] italic opacity-50">의견을 기재해 주십시오.</p>
+            </div>
+            <div class="mt-8 flex justify-between items-center text-[10px] text-[#44474d] border-t border-[#c5c6ce] pt-4">
+              <div class="flex items-center gap-2">
+                <span class="font-bold">Worker Voice Platform</span>
+                <span>|</span>
+                <span>${esc(footerDeptName)}</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <span>대외비 - 경영진 보고용</span>
+                <span class="font-bold">Page 1 / 1</span>
+              </div>
+            </div>
+          </footer>
+          
+          <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] rotate-[-45deg] select-none no-print">
+            <span class="text-[100px] font-black tracking-widest text-[#031631]">WORKER VOICE</span>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 3000);
+          }
+        <\/script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  });
+
   document.addEventListener('DOMContentLoaded', () => {
     const main = document.querySelector('main');
     main.style.opacity = '0';
