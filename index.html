@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
   <title>Worker Voice</title>
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
@@ -13,34 +13,46 @@
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    
     .topbar{height:64px;border-bottom:1px solid #c5c6ce;background:var(--surface);display:flex;align-items:center}
     .topbar-inner{max-width:1280px;width:100%;margin:0 auto;padding:0 16px}
     .brand{font-size:46px;font-weight:800;color:#0d1b37;line-height:1}
+    
     .container{max-width:1280px;margin:0 auto;padding:24px 16px 40px}
     .hero-title{font-size:34px;margin:0 0 8px;color:#0d1b37}
     .hero-sub{margin:0 0 18px;color:var(--muted)}
+    
     .grid{display:grid;grid-template-columns:1.35fr .95fr;gap:24px}
-    @media (max-width:1060px){.grid{grid-template-columns:1fr}.brand{font-size:34px}}
     .card{background:var(--surface);border:1px solid #e9eaee;border-radius:var(--radius);box-shadow:var(--shadow);padding:24px}
     .section-title{font-size:30px;margin:0 0 14px;color:#0d1b37}
     .label{font-size:13px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px}
-    input,select,textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit;background:#fff;color:var(--text)}
+    
+    /* 아이폰 강제 줌인 방지를 위해 폰트 사이즈를 16px로 강제 고정 */
+    input,select,textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-size:16px;font-family:inherit;background:#fff;color:var(--text)}
     input:focus,select:focus,textarea:focus{outline:none;border-color:var(--secondary);box-shadow:0 0 0 3px rgba(0,112,235,.2)}
     textarea{min-height:120px;resize:vertical}
+    
     .form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-    @media (max-width:820px){.form-grid2,.form-grid3{grid-template-columns:1fr}}
+    
     .risk-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px}
-    .risk-btn{border:0;color:#fff;font-weight:700;border-radius:8px;padding:10px 6px;cursor:pointer;opacity:.55}
+    .risk-btn{border:0;color:#fff;font-weight:700;font-size:14px;border-radius:8px;padding:10px 0;cursor:pointer;opacity:.55;text-align:center}
     .risk-btn.active{opacity:1;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
     .risk-low{background:var(--low)} .risk-medium{background:var(--medium)} .risk-high{background:var(--high)} .risk-critical{background:var(--critical)}
+    
     .upload-box{border:1px dashed #c5c6ce;background:#f3f3f5;border-radius:10px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+    
     .toggle{display:flex;align-items:center;gap:8px;margin-top:8px}
-    .toggle input[type="checkbox"]{width:44px;height:24px}
-    .submit-btn{width:100%;border:0;color:#fff;font-size:22px;font-weight:700;border-radius:10px;padding:14px 16px;cursor:pointer;background:linear-gradient(to bottom,#1a2b47,#0d1624);box-shadow:var(--shadow)}
+    .toggle input[type="checkbox"]{width:24px;height:24px;margin:0} /* 체크박스 크기 조정 */
+    
+    /* 리캡차와 로고를 담는 컨테이너 */
+    .captcha-container { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px; flex-wrap: wrap; gap: 12px; }
+    
+    .submit-btn{width:100%;border:0;color:#fff;font-size:20px;font-weight:700;border-radius:10px;padding:14px 16px;cursor:pointer;background:linear-gradient(to bottom,#1a2b47,#0d1624);box-shadow:var(--shadow)}
     .submit-btn:disabled{opacity:.7;cursor:not-allowed}
-    .notice{font-size:14px;color:var(--muted);margin-top:10px}
+    .notice{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.4}
     .success{margin-top:10px;border:1px solid #b9e3c2;background:#effbf2;color:#136b2a;border-radius:10px;padding:12px 14px;font-size:14px}
+    
     .lookup-box{display:flex;gap:8px;margin:10px 0 12px}
     .lookup-box input{flex:1}
     .lookup-btn{border:0;border-radius:10px;background:var(--secondary);color:#fff;font-weight:700;padding:10px 16px;cursor:pointer}
@@ -48,9 +60,41 @@
     .item:first-child{border-top:0}
     .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;margin-right:6px}
     .status{font-size:12px;color:var(--muted)}
-    .title{font-size:18px;font-weight:700;margin:6px 0;color:#111f3f}
+    .title{font-size:16px;font-weight:700;margin:6px 0;color:#111f3f}
     .meta{color:var(--muted);font-size:13px}
-    .content{margin-top:6px;white-space:pre-wrap}
+    .content{margin-top:6px;white-space:pre-wrap;font-size:14px;line-height:1.5}
+
+    /* =========================================
+       📱 모바일 디바이스 최적화 (반응형 쿼리) 
+       ========================================= */
+    @media (max-width: 1060px) {
+      .grid{grid-template-columns:1fr}
+      .brand{font-size:34px}
+    }
+    
+    @media (max-width: 820px) {
+      .form-grid2, .form-grid3 { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 16px 12px 30px; }
+      .card { padding: 16px; }
+      .brand { font-size: 28px; }
+      .hero-title { font-size: 24px; }
+      .hero-sub { font-size: 14px; }
+      .section-title { font-size: 22px; }
+      
+      /* 업로드 박스 세로 정렬 */
+      .upload-box { flex-direction: column; align-items: flex-start; }
+      .upload-box input[type="file"] { width: 100%; }
+      
+      /* 리캡차 및 로고 모바일 최적화 (가운데 정렬 및 크기 축소) */
+      .captcha-container { flex-direction: column; align-items: center; justify-content: center; width: 100%; overflow: hidden; }
+      .g-recaptcha { transform: scale(0.9); transform-origin: center; } /* 삐져나가지 않게 비율 축소 */
+      
+      .submit-btn { font-size: 18px; padding: 12px; }
+      .risk-btn { font-size: 12px; padding: 8px 0; }
+    }
   </style>
 </head>
 <body>
@@ -106,8 +150,8 @@
           </div>
 
           <div style="margin-top:12px;" class="upload-box">
-            <div class="notice">파일 업로드 (PDF, JPG, PNG)</div>
-            <div>
+            <div class="notice" style="margin-top:0;">파일 업로드 (PDF, JPG, PNG)</div>
+            <div style="width: 100%;">
               <input id="attachmentFile" type="file" accept="image/*" />
               <input type="hidden" name="attachment_base64" id="attachmentBase64" />
               <input type="hidden" name="attachment_name" id="attachmentName" />
@@ -128,9 +172,9 @@
 
           <button class="submit-btn" id="submitBtn" type="submit" style="margin-top:14px;">보고서 제출하기</button>
           
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px;">
-            <div style="transform: scale(0.85); transform-origin: 0 0;" class="g-recaptcha" data-sitekey="6LddEQgtAAAAAM8zq-90lWoC40XAuqCmOpe5uT3u"></div>
-            <img src="logo.png" alt="로고" style="max-height: 40px; margin-bottom: 5px;">
+          <div class="captcha-container">
+            <div class="g-recaptcha" data-sitekey="6LddEQgtAAAAAM8zq-90lWoC40XAuqCmOpe5uT3u"></div>
+            <img src="logo.png" alt="로고" style="max-height: 40px;">
           </div>
           
           <div class="notice" id="submitMsg">접수 대기 중</div>
@@ -140,7 +184,7 @@
       </section>
 
       <section class="card">
-        <h3 style="font-size:30px;margin:0 0 10px;">보고서 및 문의 내역</h3>
+        <h3 style="font-size:24px;margin:0 0 10px;">보고서 및 문의 내역</h3>
         <div class="lookup-box">
           <input id="receiptNoInput" maxlength="4" placeholder="접수번호 4자리 입력" />
           <button class="lookup-btn" id="btnLookup">조회</button>
@@ -156,7 +200,6 @@
   </main>
 
   <script>
-    // 주의: 배포 후 발급받은 실제 GAS URL로 교체해야 합니다.
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyEhd91bxscWGtnLiEwb74vpEcEsNicXHaEdquyLjEkY3-Wxrv-5_5OMoF3f0s6NRzG/exec";
     
     const titleTemplates = {
@@ -257,7 +300,6 @@
       }).join("");
     }
 
-    // 접수번호 4자리 검증 오타 수정 (\d)
     function lookupByReceipt(){
       const receipt = (receiptNoInput.value || "").trim();
       if(!/^\d{4}$/.test(receipt)){ listEl.innerHTML = '<p class="notice">접수번호 4자리를 입력해 주세요.</p>'; return; }
@@ -282,7 +324,6 @@
       });
     });
 
-    // 모바일 입력 충돌 방지를 위해 input 대신 blur로 변경
     reporterName.addEventListener("blur", () => { const v = sanitizeName(reporterName.value); if(v !== reporterName.value) reporterName.value = v; });
     reporterContact.addEventListener("input", () => { const v = sanitizePhone(reporterContact.value); if(v !== reporterContact.value) reporterContact.value = v; });
     isAnonymousToggle.addEventListener("change", setIdentityMode);
@@ -290,7 +331,6 @@
     titleTemplateEl.addEventListener("change", onTemplateChange);
     document.getElementById("btnLookup").addEventListener("click", lookupByReceipt);
 
-    // 접수번호 찾기 기능 추가
     document.getElementById("btnFindReceipt").addEventListener("click", (e) => {
       e.preventDefault();
       const email = prompt("접수 시 입력했던 이메일 주소를 입력해 주세요.\n(익명 접수건은 조회가 불가능합니다)");
@@ -340,7 +380,6 @@
         attachmentBase64.value = ""; attachmentName.value = ""; attachmentMime.value = "";
       }
 
-      // 폼 제출 직전 비활성화(disabled) 해제
       titleInputEl.disabled = false;
       reporterName.disabled = false;
       reporterContact.disabled = false;
