@@ -8,81 +8,89 @@
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     
     :root { 
-      --bg: #f5f5f7; --surface: #ffffff; --text-primary: #1d1d1f; --text-secondary: #86868b; 
-      --border: #d2d2d7; --brand: #0071e3; --brand-hover: #0077ED; --error: #ff3b30;
-      --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+      --bg: #f8fafc; --surface: #ffffff; --text-primary: #0f172a; --text-secondary: #64748b; 
+      --border: #e2e8f0; --brand: #3b82f6; --brand-hover: #2563eb; --brand-dark: #1e293b;
+      --radius: 12px;
     }
     
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+    body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-primary); -webkit-font-smoothing: antialiased; }
     
-    /* --- Layout Wrappers --- */
+    /* --- Layout --- */
     #loginSection { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-    #dashboardSection { max-width: 1280px; margin: 0 auto; padding: 32px 24px; display: none; }
+    #dashboardSection { max-width: 1400px; margin: 0 auto; padding: 40px 24px; display: none; }
     
-    /* --- Login UI --- */
-    .login-card { background: var(--surface); width: 100%; max-width: 400px; padding: 40px 32px; border-radius: var(--radius-lg); box-shadow: 0 4px 24px rgba(0,0,0,0.04); text-align: center; }
-    .login-card h1 { font-size: 24px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.5px; }
-    .login-card p { font-size: 14px; color: var(--text-secondary); margin: 0 0 32px; word-break: keep-all; }
+    /* --- Login --- */
+    .login-card { background: var(--surface); width: 100%; max-width: 420px; padding: 48px 36px; border-radius: var(--radius); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); text-align: center; border: 1px solid var(--border); }
+    .login-card h1 { font-size: 26px; font-weight: 800; color: var(--brand-dark); margin: 0 0 8px; letter-spacing: -0.5px; }
+    .login-card p { font-size: 14px; color: var(--text-secondary); margin: 0 0 32px; }
     
-    .input-group { margin-bottom: 16px; text-align: left; }
+    .input-group { margin-bottom: 20px; text-align: left; }
     .input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
-    input.text-input, select.select-input { width: 100%; padding: 12px 16px; font-size: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; transition: border-color 0.2s; }
-    input.text-input:focus, select.select-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
+    .text-input, .select-input { width: 100%; padding: 12px 16px; font-size: 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; transition: all 0.2s; color: var(--text-primary); }
+    .text-input:focus, .select-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
     
-    .btn { width: 100%; padding: 14px 20px; font-size: 15px; font-weight: 600; font-family: inherit; border: none; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; }
-    .btn-primary { background: var(--brand); color: #fff; }
-    .btn-primary:hover { background: var(--brand-hover); }
-    .btn-primary:disabled { background: #a1c6ea; cursor: not-allowed; }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
-    .btn-outline:hover { background: #f5f5f7; }
+    .btn { display: inline-flex; justify-content: center; align-items: center; gap: 8px; width: 100%; padding: 12px 20px; font-size: 14px; font-weight: 700; font-family: inherit; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: var(--brand-dark); color: #fff; }
+    .btn-primary:hover { background: #0f172a; box-shadow: 0 4px 12px rgba(15,23,42,0.2); }
+    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+    .btn-outline { background: #fff; border: 1px solid var(--border); color: var(--text-primary); }
+    .btn-outline:hover { background: #f1f5f9; }
+    .btn-action { background: var(--brand); color: #fff; }
+    .btn-action:hover { background: var(--brand-hover); box-shadow: 0 4px 12px rgba(59,130,246,0.2); }
     
     .msg-box { margin-top: 16px; font-size: 13px; font-weight: 600; min-height: 20px; }
-    .msg-error { color: var(--error); }
+    .msg-error { color: #ef4444; }
     .msg-info { color: var(--brand); }
 
-    /* --- Dashboard UI --- */
-    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-    .top-header h2 { font-size: 22px; font-weight: 700; margin: 0; color: #1a2b47; }
-    .top-header .site-badge { background: #e8f2fc; color: #0058bc; padding: 6px 14px; border-radius: 99px; font-size: 14px; font-weight: 700; margin-left: 12px; }
+    /* --- Dashboard --- */
+    .header-bar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .header-bar h2 { font-size: 28px; font-weight: 800; margin: 0 0 8px; color: var(--brand-dark); letter-spacing: -0.5px; }
+    .site-badge { display: inline-block; background: #e0e7ff; color: #4338ca; padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 700; }
     
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: var(--surface); padding: 24px; border-radius: var(--radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05); }
-    .stat-title { font-size: 13px; color: var(--text-secondary); font-weight: 600; margin-bottom: 8px; }
-    .stat-value { font-size: 28px; font-weight: 700; color: var(--text-primary); }
+    /* Filter Bar */
+    .filter-card { background: var(--surface); padding: 20px 24px; border-radius: var(--radius); box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--border); margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; }
+    .filter-group label { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+    .date-wrap { display: flex; align-items: center; gap: 8px; }
+    .date-wrap input { width: 140px; }
+    .filter-card select { width: 130px; }
     
-    .control-bar { display: flex; gap: 12px; align-items: center; background: var(--surface); padding: 16px 20px; border-radius: var(--radius-md); margin-bottom: 16px; border: 1px solid rgba(0,0,0,0.05); flex-wrap: wrap; }
-    .control-bar select { width: 140px; padding: 10px 14px; }
-    .control-bar .spacer { flex: 1; }
-    .btn-auto { width: auto; padding: 10px 16px; font-size: 13px; }
-    .btn-export { background: #34c759; color: #fff; display: flex; align-items: center; gap: 6px; }
-    .btn-export:hover { background: #2fb350; }
+    /* Stats */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi-card { background: var(--surface); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; }
+    .kpi-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px; }
+    .kpi-value { font-size: 32px; font-weight: 800; color: var(--brand-dark); line-height: 1; }
+    .kpi-highlight { color: var(--brand); }
+    .kpi-danger { color: #ef4444; }
+    .kpi-success { color: #10b981; }
 
-    .table-card { background: var(--surface); border-radius: var(--radius-md); overflow: hidden; border: 1px solid rgba(0,0,0,0.05); }
-    .table-responsive { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1000px; }
-    th { background: #fbfbfd; padding: 14px 16px; font-size: 12px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); white-space: nowrap; }
-    td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid #f0f0f5; color: var(--text-primary); vertical-align: middle; }
+    /* Table */
+    .table-container { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1100px; }
+    th { background: #f8fafc; padding: 16px 20px; font-size: 12px; font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border); letter-spacing: 0.5px; }
+    td { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid #f1f5f9; color: var(--text-primary); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #f9f9fb; }
+    tr:hover td { background: #f1f5f9; }
     
-    .status-pill { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
-    .status-active { background: #e8f2fc; color: #0071e3; }
-    .status-review { background: #fff4e5; color: #ff9f0a; }
-    .status-done { background: #eaf8ed; color: #34c759; }
-    .status-hold { background: #f0f0f5; color: #86868b; }
-    .risk-pill { font-weight: 700; font-size: 12px; }
+    .badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+    .bg-blue { background: #eff6ff; color: #2563eb; }
+    .bg-orange { background: #fff7ed; color: #ea580c; }
+    .bg-green { background: #ecfdf5; color: #059669; }
+    .bg-gray { background: #f1f5f9; color: #64748b; }
+    .bg-red { background: #fef2f2; color: #dc2626; }
+    .bg-purple { background: #faf5ff; color: #9333ea; }
 
-    /* Edit Modal */
-    #editModal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; backdrop-filter: blur(4px); }
-    .modal-box { background: var(--surface); border-radius: var(--radius-md); width: 100%; max-width: 500px; padding: 32px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
-    .modal-title { font-size: 18px; font-weight: 700; margin: 0 0 24px; color: #1a2b47; }
-    .textarea-box { width: 100%; min-height: 100px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; resize: vertical; margin-bottom: 16px; }
-    .textarea-box:focus { outline: none; border-color: var(--brand); }
+    /* Modal */
+    #editModal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); padding: 20px; }
+    .modal-content { background: var(--surface); border-radius: 16px; width: 100%; max-width: 540px; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    .modal-content h3 { margin: 0 0 24px; font-size: 20px; font-weight: 800; color: var(--brand-dark); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   </style>
 </head>
 <body>
 
+  <!-- 1. 로그인 구역 -->
   <div id="loginSection">
     <div class="login-card">
       <h1>Worker Voice Admin</h1>
@@ -92,106 +100,117 @@
         <div class="input-group">
           <input type="email" id="inputEmail" class="text-input" placeholder="name@example.com" />
         </div>
-        <button id="btnRequest" class="btn btn-primary">다음</button>
+        <button id="btnRequest" class="btn btn-primary">보안 인증</button>
       </div>
 
       <div id="stepAuth" style="display:none;">
         <div class="input-group">
           <label id="authLabel"></label>
-          <input type="password" id="inputAuth" class="text-input" placeholder="여기에 입력하세요" />
+          <input type="password" id="inputAuth" class="text-input" placeholder="인증 정보 입력" />
         </div>
         <button id="btnLogin" class="btn btn-primary">대시보드 접속</button>
       </div>
-
       <div id="loginMsg" class="msg-box"></div>
     </div>
   </div>
 
+  <!-- 2. 대시보드 구역 -->
   <div id="dashboardSection">
-    <div class="top-header">
-      <div style="display: flex; align-items: center;">
+    <div class="header-bar">
+      <div>
         <h2>품질안전보건 관리 대시보드</h2>
-        <span id="siteBadge" class="site-badge">로딩중...</span>
+        <div id="siteBadge" class="site-badge">로딩중...</div>
       </div>
-      <button class="btn btn-outline btn-auto" onclick="location.reload()">로그아웃</button>
+      <button class="btn btn-outline" style="width: auto;" onclick="location.reload()">시스템 로그아웃</button>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-title">신규 접수 (처리중)</div>
-        <div class="stat-value" id="sActive">0</div>
+    <!-- 신규: 정밀 필터 및 리포트 출력 바 -->
+    <div class="filter-card">
+      <div class="filter-group">
+        <label>조회 기간 (접수일 기준)</label>
+        <div class="date-wrap">
+          <input type="date" id="fStart" class="text-input" />
+          <span style="color:var(--text-secondary); font-weight:700;">~</span>
+          <input type="date" id="fEnd" class="text-input" />
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-title">검토 진행 중</div>
-        <div class="stat-value" id="sReview">0</div>
+      <div class="filter-group">
+        <label>처리 상태</label>
+        <select id="fStatus" class="select-input">
+          <option value="">전체 상태</option>
+          <option value="active">처리중</option>
+          <option value="in_review">검토중</option>
+          <option value="done">조치완료</option>
+        </select>
       </div>
-      <div class="stat-card">
-        <div class="stat-title">긴급 미조치</div>
-        <div class="stat-value" id="sCritical" style="color: var(--error);">0</div>
+      <div class="filter-group">
+        <label>카테고리</label>
+        <select id="fCategory" class="select-input">
+          <option value="">전체 분류</option>
+          <option value="안전관리">안전관리</option>
+          <option value="노무관리">노무관리</option>
+          <option value="기타관리">기타관리</option>
+        </select>
       </div>
-      <div class="stat-card">
-        <div class="stat-title">총 해결 완료</div>
-        <div class="stat-value" id="sDone" style="color: #34c759;">0</div>
+      <div style="flex:1;"></div>
+      <div style="display: flex; gap: 12px; align-items: flex-end; height: 100%;">
+        <button id="btnLoad" class="btn btn-primary" style="width: 120px;">데이터 조회</button>
+        <button id="btnExport" class="btn btn-action" style="width: 160px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          보고서 생성 (PDF)
+        </button>
       </div>
     </div>
 
-    <div class="control-bar">
-      <select id="fStatus" class="select-input">
-        <option value="">모든 상태</option>
-        <option value="active">처리중</option>
-        <option value="in_review">검토중</option>
-        <option value="done">조치완료</option>
-      </select>
-      <select id="fCategory" class="select-input">
-        <option value="">모든 분류</option>
-        <option value="안전관리">안전관리</option>
-        <option value="노무관리">노무관리</option>
-        <option value="기타관리">기타관리</option>
-      </select>
-      <button id="btnLoad" class="btn btn-outline btn-auto">필터 적용</button>
-      
-      <div class="spacer"></div>
-      
-      <label style="font-size:13px; font-weight:500; display:flex; align-items:center; gap:6px;">
-        <input type="checkbox" id="chkNotify" checked />
-        조치 저장 시 제보자 회신
-      </label>
-      <button id="btnExport" class="btn btn-export btn-auto">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
-        보고서 인쇄
-      </button>
+    <!-- 동적 KPI 통계 -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">해당 기간 총 접수</div>
+        <div class="kpi-value" id="kTotal">0<span style="font-size:16px; font-weight:600; color:var(--text-secondary);">건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">처리 완료 (조치율)</div>
+        <div class="kpi-value kpi-success" id="kDone">0<span style="font-size:16px; font-weight:600;">%</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">긴급 미조치 리스크</div>
+        <div class="kpi-value kpi-danger" id="kCritical">0<span style="font-size:16px; font-weight:600;">건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">검토/처리 진행중</div>
+        <div class="kpi-value kpi-highlight" id="kActive">0<span style="font-size:16px; font-weight:600;">건</span></div>
+      </div>
     </div>
 
-    <div class="table-card">
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:80px;">상태</th>
-              <th style="width:70px;">위험도</th>
-              <th style="width:100px;">접수일</th>
-              <th style="width:130px;">현장명</th>
-              <th>제보 요약 (제목)</th>
-              <th style="width:110px;">목표일</th>
-              <th style="width:110px;">담당자</th>
-              <th style="width:80px; text-align:center;">상세/수정</th>
-            </tr>
-          </thead>
-          <tbody id="tbody">
-            <tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-secondary);">조회된 데이터가 없습니다.</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <!-- 데이터 테이블 -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px;">상태</th>
+            <th style="width:80px;">위험도</th>
+            <th style="width:110px;">접수일</th>
+            <th style="width:150px;">현장명</th>
+            <th>제보 요약 (제목)</th>
+            <th style="width:120px;">목표일</th>
+            <th style="width:120px;">담당자</th>
+            <th style="width:90px; text-align:center;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="8" style="text-align:center; padding:60px; color:var(--text-secondary);">기간 및 조건을 설정하여 데이터를 조회해 주십시오.</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
+  <!-- 3. 상세조치 모달 -->
   <div id="editModal">
-    <div class="modal-box">
-      <h3 class="modal-title" id="mTitle">상세 조치</h3>
-      
-      <div style="display:flex; gap:12px; margin-bottom:16px;">
-        <div style="flex:1;">
-          <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">처리 상태</label>
+    <div class="modal-content">
+      <h3 id="mTitle">조치 내용 편집</h3>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>진행 상태</label>
           <select id="mStatus" class="select-input">
             <option value="active">처리중</option>
             <option value="in_review">검토중</option>
@@ -199,8 +218,8 @@
             <option value="done">조치완료</option>
           </select>
         </div>
-        <div style="flex:1;">
-          <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">위험도</label>
+        <div class="input-group">
+          <label>위험도</label>
           <select id="mRisk" class="select-input">
             <option value="low">낮음</option>
             <option value="medium">보통</option>
@@ -209,24 +228,29 @@
           </select>
         </div>
       </div>
-
-      <div style="display:flex; gap:12px; margin-bottom:24px;">
-        <div style="flex:1;">
-          <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">담당자 지정</label>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>담당자 지정</label>
           <input type="text" id="mOwner" class="text-input" placeholder="이름/부서" />
         </div>
-        <div style="flex:1;">
-          <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">목표일</label>
+        <div class="input-group">
+          <label>처리 목표일</label>
           <input type="date" id="mDate" class="text-input" />
         </div>
       </div>
-
-      <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">조치 결과 및 계획</label>
-      <textarea id="mNote" class="textarea-box" placeholder="해당 칸에 입력된 텍스트가 제보자에게 발송됩니다."></textarea>
+      <div class="input-group">
+        <label>조치 결과 및 피드백 내용</label>
+        <textarea id="mNote" class="text-input" style="min-height: 100px; resize: vertical;" placeholder="이 내용은 제보자에게 메일로 안내됩니다."></textarea>
+      </div>
       
+      <label style="font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom: 24px; cursor:pointer;">
+        <input type="checkbox" id="chkNotify" checked style="width:16px; height:16px;" />
+        저장 시 제보자에게 결과 메일 자동 발송
+      </label>
+
       <div style="display:flex; gap:12px;">
         <button class="btn btn-outline" onclick="document.getElementById('editModal').style.display='none'">취소</button>
-        <button class="btn btn-primary" id="btnSaveUpdate">저장하기</button>
+        <button class="btn btn-primary" id="btnSaveUpdate">업데이트 저장</button>
       </div>
     </div>
   </div>
@@ -235,15 +259,19 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyEhd91bxscWGtnLiEwb74vpEcEsNicXHaEdquyLjEkY3-Wxrv-5_5OMoF3f0s6NRzG/exec";
     
     let authEmail = "", authCode = "", isMaster = false;
-    let currentRecords = [], editTargetId = "";
+    let allRecords = [], filteredRecords = [], editTargetId = "";
 
-    const elMsg = document.getElementById("loginMsg");
-    const loginSec = document.getElementById("loginSection");
-    const dashSec = document.getElementById("dashboardSection");
+    // 날짜 기본값 세팅 (당월 1일 ~ 오늘)
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 2).toISOString().split('T')[0]; // 한국시간 보정
+    const todayStr = today.toISOString().split('T')[0];
+    document.getElementById("fStart").value = firstDay;
+    document.getElementById("fEnd").value = todayStr;
 
     function setMsg(txt, isErr=false) {
-      elMsg.textContent = txt;
-      elMsg.className = isErr ? "msg-box msg-error" : "msg-box msg-info";
+      const el = document.getElementById("loginMsg");
+      el.textContent = txt;
+      el.className = isErr ? "msg-box msg-error" : "msg-box msg-info";
     }
     function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
@@ -252,47 +280,42 @@
       for(let k in params) url.searchParams.set(k, params[k]);
       const cbn = "cb_" + Date.now() + Math.floor(Math.random()*1000);
       let isDone = false;
-      const t = setTimeout(() => { if(!isDone){ isDone=true; delete window[cbn]; errCb("시간 초과"); } }, 15000);
+      const t = setTimeout(() => { if(!isDone){ isDone=true; delete window[cbn]; errCb("서버 응답 지연"); } }, 15000);
       window[cbn] = (res) => { if(!isDone){ isDone=true; clearTimeout(t); delete window[cbn]; cb(res); } };
       url.searchParams.set("callback", cbn);
       const s = document.createElement("script");
       s.src = url.toString();
-      s.onerror = () => { if(!isDone){ isDone=true; clearTimeout(t); delete window[cbn]; errCb("통신 오류"); } };
+      s.onerror = () => { if(!isDone){ isDone=true; clearTimeout(t); delete window[cbn]; errCb("네트워크 오류"); } };
       s.onload = () => s.remove();
       document.body.appendChild(s);
     }
 
-    // 1. 로그인 1단계: 이메일 전송
+    // 1. 로그인 인증
     document.getElementById("btnRequest").addEventListener("click", () => {
       const email = document.getElementById("inputEmail").value.trim();
       if(!email) return setMsg("이메일을 입력해 주십시오.", true);
       
       authEmail = email;
       document.getElementById("btnRequest").disabled = true;
-      setMsg("권한 확인 중...");
+      setMsg("보안 권한 확인 중...");
 
       jsonp({ action: "send_site_otp", contact_email: authEmail }, (res) => {
         document.getElementById("btnRequest").disabled = false;
+        if(!res || !res.ok) return setMsg("미등록 계정입니다. 관리자에게 권한을 요청하세요.", true);
         
-        // 미등록 계정인 경우
-        if(!res || !res.ok) {
-          return setMsg("미등록 계정입니다. 관리자에게 문의해 주세요.", true);
-        }
-        
-        // 등록 계정인 경우 UI 전환
         document.getElementById("stepEmail").style.display = "none";
         document.getElementById("stepAuth").style.display = "block";
         document.getElementById("loginDesc").style.display = "none";
         
         isMaster = res.is_master;
         if(isMaster) {
-          document.getElementById("authLabel").textContent = "마스터 권한 확인. 마스터 키번호를 입력하세요.";
-          document.getElementById("inputAuth").placeholder = "마스터 키번호 입력";
+          document.getElementById("authLabel").textContent = "마스터 권한 승인. 접속 키를 입력하세요.";
+          document.getElementById("inputAuth").placeholder = "마스터 키 입력";
           setMsg("");
         } else {
-          document.getElementById("authLabel").textContent = "인증메일을 확인하여 인증번호 6자리를 입력하세요.";
-          document.getElementById("inputAuth").placeholder = "6자리 숫자 입력";
-          setMsg("인증메일 발송 완료");
+          document.getElementById("authLabel").textContent = "메일로 발송된 6자리 코드를 입력하세요.";
+          document.getElementById("inputAuth").placeholder = "6자리 코드";
+          setMsg("인증 메일이 발송되었습니다.");
         }
       }, (err) => {
         document.getElementById("btnRequest").disabled = false;
@@ -300,19 +323,17 @@
       });
     });
 
-    // 2. 로그인 2단계: 대시보드 진입
-    document.getElementById("btnLogin").addEventListener("click", loadData);
-    document.getElementById("btnLoad").addEventListener("click", loadData);
+    // 2. 대시보드 로드 및 필터링
+    document.getElementById("btnLogin").addEventListener("click", () => fetchAndFilter(true));
+    document.getElementById("btnLoad").addEventListener("click", () => fetchAndFilter(false));
 
-    function loadData() {
-      const codeInput = document.getElementById("inputAuth").value.trim();
-      if(!authCode && !codeInput) return setMsg("인증 정보를 입력하세요.", true);
-      if(codeInput) authCode = codeInput;
-
-      const btnLogin = document.getElementById("btnLogin");
-      if(loginSec.style.display !== "none") {
-        btnLogin.disabled = true;
-        setMsg("데이터 불러오는 중...");
+    function fetchAndFilter(isLoginAttempt) {
+      if(isLoginAttempt) {
+        const code = document.getElementById("inputAuth").value.trim();
+        if(!authCode && !code) return setMsg("인증 정보를 입력하세요.", true);
+        if(code) authCode = code;
+        document.getElementById("btnLogin").disabled = true;
+        setMsg("안전 데이터를 동기화 중입니다...");
       }
 
       jsonp({
@@ -321,76 +342,89 @@
         status: document.getElementById("fStatus").value,
         category: document.getElementById("fCategory").value
       }, (res) => {
-        btnLogin.disabled = false;
+        if(isLoginAttempt) document.getElementById("btnLogin").disabled = false;
         if(!res || !res.ok) {
-          if(loginSec.style.display !== "none") setMsg("인증 실패: 정보를 확인하세요.", true);
-          else alert("데이터 갱신 실패");
+          if(isLoginAttempt) setMsg("인증 실패. 입력 정보를 확인하세요.", true);
+          else alert("데이터 조회 실패");
           authCode = ""; return;
         }
 
-        // 로그인 화면 숨기고 대시보드 노출 (보안칸 사라짐)
-        loginSec.style.display = "none";
-        dashSec.style.display = "block";
-        currentRecords = res.items || [];
+        if(isLoginAttempt) {
+          document.getElementById("loginSection").style.display = "none";
+          document.getElementById("dashboardSection").style.display = "block";
+          const sites = res.allowed_sites || [];
+          document.getElementById("siteBadge").textContent = isMaster ? "통합 마스터" : (sites.length===1 ? sites[0] : "다중 현장");
+        }
+
+        allRecords = res.items || [];
         
-        // 상단 현장명 배지 설정
-        const sites = res.allowed_sites || [];
-        document.getElementById("siteBadge").textContent = isMaster ? "통합 관리자(마스터)" : (sites.length===1 ? sites[0] : "다중 현장 접속");
+        // 날짜 필터 적용
+        const sDate = document.getElementById("fStart").value;
+        const eDate = document.getElementById("fEnd").value;
+        filteredRecords = allRecords.filter(it => {
+          const d = it.created_at.substring(0, 10);
+          if(sDate && d < sDate) return false;
+          if(eDate && d > eDate) return false;
+          return true;
+        });
 
-        renderTable();
-        updateStats();
+        renderDashboard();
       }, (err) => {
-        btnLogin.disabled = false;
-        if(loginSec.style.display !== "none") setMsg(err, true);
+        if(isLoginAttempt) {
+          document.getElementById("btnLogin").disabled = false;
+          setMsg(err, true);
+        } else alert("조회 중 오류 발생");
       });
     }
 
-    function updateStats() {
-      let a=0, r=0, c=0, d=0;
-      currentRecords.forEach(it => {
-        if(it.status === 'active') a++;
-        if(it.status === 'in_review') r++;
-        if(it.risk_level === 'critical' && it.status !== 'done') c++;
-        if(it.status === 'done') d++;
+    function renderDashboard() {
+      // KPI 업데이트
+      let total = filteredRecords.length, done = 0, critical = 0, active = 0;
+      filteredRecords.forEach(it => {
+        if(it.status === 'done') done++;
+        else {
+          if(it.status === 'active' || it.status === 'in_review') active++;
+          if(it.risk_level === 'critical') critical++;
+        }
       });
-      document.getElementById('sActive').textContent = a;
-      document.getElementById('sReview').textContent = r;
-      document.getElementById('sCritical').textContent = c;
-      document.getElementById('sDone').textContent = d;
-    }
+      
+      const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+      document.getElementById('kTotal').innerHTML = `${total}<span style="font-size:16px; font-weight:600; color:var(--text-secondary);">건</span>`;
+      document.getElementById('kDone').innerHTML = `${rate}<span style="font-size:16px; font-weight:600;">%</span>`;
+      document.getElementById('kCritical').innerHTML = `${critical}<span style="font-size:16px; font-weight:600;">건</span>`;
+      document.getElementById('kActive').innerHTML = `${active}<span style="font-size:16px; font-weight:600;">건</span>`;
 
-    function renderTable() {
+      // 테이블 업데이트
       const tbody = document.getElementById("tbody");
-      if(!currentRecords.length) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-secondary);">조회된 데이터가 없습니다.</td></tr>';
+      if(total === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:60px; color:var(--text-secondary);">해당 기간 및 조건에 맞는 제보 내역이 없습니다.</td></tr>';
         return;
       }
 
-      const sMap = { "active":"status-active", "in_review":"status-review", "done":"status-done", "hold":"status-hold" };
+      const sMap = { "active":"bg-blue", "in_review":"bg-orange", "done":"bg-green", "hold":"bg-gray" };
       const sTxt = { "active":"처리중", "in_review":"검토중", "done":"완료", "hold":"보류" };
+      const rMap = { "low":"bg-green", "medium":"bg-orange", "high":"bg-red", "critical":"bg-purple" };
       const rTxt = { "low":"낮음", "medium":"보통", "high":"높음", "critical":"긴급" };
-      const rCol = { "low":"#34c759", "medium":"#ff9f0a", "high":"#ff3b30", "critical":"#af52de" };
 
-      tbody.innerHTML = currentRecords.map(it => `
+      tbody.innerHTML = filteredRecords.map(it => `
         <tr>
-          <td><span class="status-pill ${sMap[it.status]||'status-hold'}">${sTxt[it.status]||it.status}</span></td>
-          <td><span class="risk-pill" style="color:${rCol[it.risk_level]||'#1d1d1f'}">${rTxt[it.risk_level]||it.risk_level}</span></td>
-          <td style="color:var(--text-secondary); font-size:12px;">${String(it.created_at).substring(0,10)}</td>
-          <td style="font-weight:600; color:#1a2b47;">${esc(it.site_name)}</td>
-          <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${esc(it.title)}">${esc(it.title)}</td>
-          <td style="font-size:12px;">${esc(it.due_date)}</td>
-          <td>${esc(it.action_owner) || '-'}</td>
-          <td style="text-align:center;"><button class="btn btn-outline btn-auto" style="padding:6px 12px; font-size:11px;" onclick="openModal('${it.id}')">수정</button></td>
+          <td><span class="badge ${sMap[it.status]||'bg-gray'}">${sTxt[it.status]||it.status}</span></td>
+          <td><span class="badge ${rMap[it.risk_level]||'bg-gray'}">${rTxt[it.risk_level]||it.risk_level}</span></td>
+          <td style="color:var(--text-secondary); font-size:13px;">${String(it.created_at).substring(0,10)}</td>
+          <td style="font-weight:700; color:var(--brand-dark);">${esc(it.site_name)}</td>
+          <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${esc(it.title)}">${esc(it.title)}</td>
+          <td style="font-size:13px;">${esc(it.due_date)||'-'}</td>
+          <td style="font-size:13px;">${esc(it.action_owner)||'-'}</td>
+          <td style="text-align:center;"><button class="btn btn-outline" style="padding:6px 12px; font-size:12px;" onclick="openModal('${it.id}')">수정</button></td>
         </tr>
       `).join("");
     }
 
-    // 3. 모달창 데이터 바인딩
+    // 3. 모달 제어 및 저장
     window.openModal = function(id) {
-      const it = currentRecords.find(r => r.id === id);
+      const it = allRecords.find(r => r.id === id);
       if(!it) return;
       editTargetId = id;
-      document.getElementById("mTitle").textContent = `상세 조치 [${id.split('-')[2] || id}]`;
       document.getElementById("mStatus").value = it.status || "active";
       document.getElementById("mRisk").value = it.risk_level || "medium";
       document.getElementById("mOwner").value = it.action_owner || "";
@@ -401,7 +435,7 @@
 
     document.getElementById("btnSaveUpdate").addEventListener("click", () => {
       const btn = document.getElementById("btnSaveUpdate");
-      btn.disabled = true; btn.textContent = "저장 중...";
+      btn.disabled = true; btn.textContent = "업데이트 중...";
 
       const p = {
         action: "admin_update", contact_email: authEmail, id: editTargetId,
@@ -415,204 +449,151 @@
       if(isMaster) p.token = authCode; else p.site_otp = authCode;
 
       jsonp(p, (res) => {
-        btn.disabled = false; btn.textContent = "저장하기";
-        if(!res || !res.ok) return alert("저장 실패");
+        btn.disabled = false; btn.textContent = "업데이트 저장";
+        if(!res || !res.ok) return alert("저장 실패. 권한을 확인하세요.");
         document.getElementById("editModal").style.display = "none";
-        loadData();
+        fetchAndFilter(false); // 재조회
       }, (err) => {
-        btn.disabled = false; btn.textContent = "저장하기"; alert("오류 발생");
+        btn.disabled = false; btn.textContent = "업데이트 저장"; alert("통신 오류 발생");
       });
     });
 
-    // 4. 외주 디자인(code.html) 구조를 완벽 반영한 보고서 인쇄 팝업
+    // 4. [프리미엄 리포트 PDF 출력] - 완전히 개편된 맥킨지/애플 스타일 리포트
     document.getElementById("btnExport").addEventListener("click", () => {
-      if(!currentRecords.length) return alert("출력할 데이터가 없습니다.");
+      if(!filteredRecords.length) return alert("출력할 데이터가 없습니다. 기간을 확인하세요.");
       
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
-      const todayStr = `${currentYear}.${currentMonth}.${String(today.getDate()).padStart(2, '0')}`;
-      const monthPrefix = `${currentYear}-${currentMonth}`;
+      const sDate = document.getElementById("fStart").value;
+      const eDate = document.getElementById("fEnd").value;
+      const printDate = new Date().toISOString().substring(0,10);
+      const siteName = document.getElementById("siteBadge").textContent;
 
-      // 현장명 및 권한에 따른 푸터 텍스트 설정
-      const uniqueSites = [...new Set(currentRecords.map(r => r.site_name))];
-      const headerSiteName = uniqueSites.length === 1 ? uniqueSites[0] : "통합 보고서";
-      const footerDeptName = isMaster ? "품질안전보건실" : headerSiteName;
+      // KPI 연산 (선택된 기간 기준)
+      const total = filteredRecords.length;
+      const done = filteredRecords.filter(r => r.status === 'done').length;
+      const active = filteredRecords.filter(r => r.status === 'active' || r.status === 'in_review').length;
+      const critical = filteredRecords.filter(r => r.risk_level === 'critical').length;
+      const rate = total > 0 ? Math.round((done / total) * 100) : 0;
 
-      // 당월 통계 연산
-      const periodRecords = currentRecords.filter(r => String(r.created_at).startsWith(monthPrefix));
-      const totalPeriod = periodRecords.length;
-      const donePeriod = periodRecords.filter(r => r.status === 'done').length;
-      const ratePeriod = totalPeriod > 0 ? Math.round((donePeriod / totalPeriod) * 100) : 0;
+      const rTxt = { "low":"낮음", "medium":"보통", "high":"높음", "critical":"긴급" };
+      const sTxt = { "active":"처리중", "in_review":"검토중", "done":"완료", "hold":"보류" };
 
-      const catCount = { "안전관리": 0, "노무관리": 0, "기타관리": 0 };
-      periodRecords.forEach(r => { if (catCount[r.category] !== undefined) catCount[r.category]++; });
-      let topCategory = "안전관리", topCatCount = 0;
-      for (const [cat, count] of Object.entries(catCount)) {
-        if (count > topCatCount) { topCategory = cat; topCatCount = count; }
-      }
-      const topCatRate = totalPeriod > 0 ? Math.round((topCatCount / totalPeriod) * 100) : 0;
-      const topCatName = topCategory.replace("관리", ""); 
+      const rowsHtml = filteredRecords.map(it => `
+        <tr style="page-break-inside: avoid; border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 12px 8px; font-size: 11px; color: #475569;">${String(it.created_at).substring(0,10)}</td>
+          <td style="padding: 12px 8px; font-size: 12px; font-weight: 600; color: #0f172a;">${it.is_anonymous==="TRUE" ? "익명" : esc(it.reporter_name)}</td>
+          <td style="padding: 12px 8px; font-size: 12px; color: #1e293b; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(it.title)}</td>
+          <td style="padding: 12px 8px; font-size: 12px; color: #475569;">${esc(it.action_owner)||'-'}</td>
+          <td style="padding: 12px 8px; font-size: 11px; font-weight: 700; color: ${it.status==='done'?'#059669':(it.risk_level==='critical'?'#dc2626':'#3b82f6')}; text-align: right;">
+            ${rTxt[it.risk_level]} / ${sTxt[it.status]}
+          </td>
+        </tr>
+      `).join('');
 
-      const ytdRecords = currentRecords.filter(r => String(r.created_at).startsWith(String(currentYear)));
-      const ytdTotal = ytdRecords.length;
-
-      // 뱃지 디자인 (외주 Tailwind 클래스 적용)
-      const badgeStyle = {
-        "low": { text: "낮음", class: "border-[#34c759] text-[#34c759]" },
-        "medium": { text: "보통", class: "border-[#ff9500] text-[#ff9500]" },
-        "high": { text: "높음", class: "border-[#ff3b30] text-[#ff3b30]" },
-        "critical": { text: "긴급", class: "border-[#af52de] text-[#af52de]" },
-        "done": { text: "조치완료", class: "border-[#34c759] text-[#34c759]" },
-        "active": { text: "처리중", class: "border-[#0070eb] text-[#0070eb]" },
-        "in_review": { text: "검토중", class: "border-[#ff9500] text-[#ff9500]" },
-        "hold": { text: "보류", class: "border-[#86868b] text-[#86868b]" }
-      };
-
-      // 외주 폼의 HTML 행 (tr) 생성
-      let rowsHtml = periodRecords.map(it => {
-        const reporterName = it.is_anonymous === "TRUE" ? "익명" : `${esc(it.reporter_name)}`;
-        const displayStatus = it.status === 'done' ? 'done' : it.risk_level;
-        const bStyle = badgeStyle[displayStatus] || { text: it.status, class: "border-[#44474d] text-[#44474d]" };
-        return `
-          <tr class="page-break-avoid">
-            <td class="py-4 px-4 text-[13px]">${String(it.created_at).substring(0, 10).replace(/-/g, '.')}</td>
-            <td class="py-4 px-4 text-[13px]">${reporterName}</td>
-            <td class="py-4 px-4 text-[13px] max-w-[200px] truncate" title="${esc(it.title)}">${esc(it.title)}</td>
-            <td class="py-4 px-4 text-[13px]">${esc(it.action_owner) || '-'}</td>
-            <td class="py-4 px-4">
-              <span class="status-badge ${bStyle.class}">${bStyle.text}</span>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      if(periodRecords.length === 0) {
-        rowsHtml = `<tr><td colspan="5" class="py-10 text-center text-[#86868b] text-[13px]">해당 기간에 접수된 내역이 없습니다.</td></tr>`;
-      }
-
-      // 새 창 띄우고 외주 디자인 원본 HTML 렌더링
       const printWindow = window.open('', '_blank');
-      const html = `
+      printWindow.document.write(`
         <!DOCTYPE html>
         <html lang="ko">
         <head>
           <meta charset="utf-8"/>
-          <title>Worker Voice 월간 보고서</title>
-          <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"><\/script>
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+          <title>Worker Voice 리포트</title>
           <style>
-            body { font-family: 'Inter', -apple-system, sans-serif; background-color: #f9f9fb; color: #1a2b47; -webkit-font-smoothing: antialiased; }
+            @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+            body { font-family: 'Pretendard', sans-serif; color: #0f172a; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; background: #fff; }
             @media print {
-              @page { size: A4 portrait; margin: 0; }
-              body { padding: 0; background-color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-              .no-print { display: none !important; }
-              .print-shadow-none { box-shadow: none !important; }
-              .page-break-avoid { page-break-inside: avoid; }
+              @page { size: A4 portrait; margin: 15mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .no-print { display: none; }
             }
-            .approval-box { border: 1px solid #c5c6ce; }
-            .approval-cell { border-left: 1px solid #c5c6ce; width: 60px; }
-            .approval-header { border-bottom: 1px solid #c5c6ce; background-color: #f3f3f5; padding: 2px 0; text-align: center; font-size: 10px; font-weight: 600; }
-            .approval-stamp { height: 40px; }
-            .status-badge { padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; border-width: 1.5px; }
-            .writing-mode-vertical-rl { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 2px; }
+            .container { max-width: 210mm; margin: 0 auto; }
+            .header { border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+            .title h1 { margin: 0 0 4px; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+            .title p { margin: 0; font-size: 12px; color: #64748b; }
+            .meta { text-align: right; font-size: 11px; color: #64748b; line-height: 1.6; }
+            .meta strong { color: #0f172a; }
+            
+            .kpi-wrap { display: flex; gap: 16px; margin-bottom: 32px; }
+            .kpi-box { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; text-align: center; background: #f8fafc; }
+            .kpi-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 8px; }
+            .kpi-val { font-size: 24px; font-weight: 800; }
+            
+            table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+            th { background: #f1f5f9; padding: 10px 8px; font-size: 11px; font-weight: 700; color: #475569; text-align: left; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; }
+            
+            .footer-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; min-height: 120px; position: relative; }
+            .footer-box h3 { margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #0f172a; }
+            .footer-box::after { content: "의견 기재란"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 14px; color: #cbd5e1; font-weight: 600; letter-spacing: 2px; }
+            
+            .watermark { position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 120px; font-weight: 900; color: rgba(0,0,0,0.03); z-index: -1; white-space: nowrap; }
           </style>
         </head>
-        <body class="flex justify-center py-10">
-          <div class="w-[210mm] min-h-[297mm] bg-white p-[20mm] shadow-2xl print-shadow-none relative flex flex-col overflow-hidden">
+        <body>
+          <div class="watermark">CONFIDENTIAL</div>
+          <div class="container">
+            <div class="header">
+              <div class="title">
+                <h1>안전보건 현황 리포트</h1>
+                <p>Worker Voice System &middot; 경영진 요약 보고서</p>
+              </div>
+              <div class="meta">
+                <div>대상 현장: <strong>${esc(siteName)}</strong></div>
+                <div>조회 기간: <strong>${sDate} ~ ${eDate}</strong></div>
+                <div>출력 일자: <strong>${printDate}</strong></div>
+              </div>
+            </div>
             
-            <header class="flex justify-between items-start mb-6">
-              <div class="flex flex-col gap-2">
-                <p class="text-[14px] text-[#44474d]">현장명 : <strong style="color: #1a1c1d;">${esc(headerSiteName)}</strong></p>
-                <p class="text-[14px] text-[#44474d]">조회 기간: ${currentYear}.${currentMonth}.01 ~ ${currentYear}.${currentMonth}.31</p>
-                <p class="text-[14px] text-[#44474d]">출력 일자: ${todayStr}</p>
+            <div class="kpi-wrap">
+              <div class="kpi-box">
+                <div class="kpi-label">총 접수 건수</div>
+                <div class="kpi-val" style="color:#0f172a;">${total}</div>
               </div>
-              <div class="flex approval-box">
-                <div class="flex items-center justify-center px-2 bg-[#f3f3f5] font-bold text-[10px] writing-mode-vertical-rl text-[#1a2b47]">결재</div>
-                <div class="approval-cell border-l-0"><div class="approval-header">작성</div><div class="approval-stamp"></div></div>
-                <div class="approval-cell"><div class="approval-header">검토</div><div class="approval-stamp"></div></div>
-                <div class="approval-cell"><div class="approval-header">승인</div><div class="approval-stamp"></div></div>
+              <div class="kpi-box">
+                <div class="kpi-label">조치 완료율 (KPI)</div>
+                <div class="kpi-val" style="color:#059669;">${rate}%</div>
               </div>
-            </header>
+              <div class="kpi-box">
+                <div class="kpi-label">진행중 안건</div>
+                <div class="kpi-val" style="color:#3b82f6;">${active}</div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-label">긴급 리스크</div>
+                <div class="kpi-val" style="color:#dc2626;">${critical}</div>
+              </div>
+            </div>
 
-            <section class="grid grid-cols-4 gap-4 mb-10">
-              <div class="bg-white border border-[#c5c6ce] p-4 rounded-xl shadow-sm">
-                <p class="text-[12px] font-bold text-[#44474d] mb-1">월간 총 접수</p>
-                <div class="flex items-baseline gap-1"><span class="text-[32px] font-bold text-[#031631]">${totalPeriod}</span><span class="text-[14px] text-[#44474d]">건</span></div>
-              </div>
-              <div class="bg-white border border-[#c5c6ce] p-4 rounded-xl shadow-sm">
-                <p class="text-[12px] font-bold text-[#44474d] mb-1">카테고리 집중도</p>
-                <div class="flex flex-col gap-1">
-                  <div class="flex justify-between items-center text-[11px]"><span class="font-medium">${topCatName}</span><span class="font-bold">${topCatRate}%</span></div>
-                  <div class="w-full bg-[#eeeef0] h-1.5 rounded-full overflow-hidden"><div class="bg-[#0058bc] h-full" style="width: ${topCatRate}%"></div></div>
-                </div>
-              </div>
-              <div class="bg-white border border-[#c5c6ce] p-4 rounded-xl shadow-sm">
-                <p class="text-[12px] font-bold text-[#44474d] mb-1">월간 조치율</p>
-                <div class="flex items-baseline gap-1"><span class="text-[32px] font-bold text-[#0058bc]">${ratePeriod}</span><span class="text-[14px] text-[#0070eb] font-bold">%</span></div>
-              </div>
-              <div class="bg-white border border-[#c5c6ce] p-4 rounded-xl shadow-sm">
-                <p class="text-[12px] font-bold text-[#44474d] mb-1">연간 누적 통계</p>
-                <div class="flex items-baseline gap-1"><span class="text-[32px] font-bold text-[#031631]">${ytdTotal.toLocaleString()}</span><span class="text-[14px] text-[#44474d]">건</span></div>
-              </div>
-            </section>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 80px;">접수일자</th>
+                  <th style="width: 70px;">제보자</th>
+                  <th>제보 핵심 요약</th>
+                  <th style="width: 100px;">담당자</th>
+                  <th style="width: 100px; text-align: right;">위험/상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
 
-            <section class="flex-grow mb-10">
-              <h2 class="text-[20px] font-bold text-[#031631] mb-4 border-l-4 border-[#0058bc] pl-3">주요 조치 현황 리스트</h2>
-              <div class="w-full overflow-hidden">
-                <table class="w-full text-left">
-                  <thead>
-                    <tr class="border-y border-[#c5c6ce] bg-[#f3f3f5]">
-                      <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">접수일</th>
-                      <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">제보자</th>
-                      <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">제보 내용(요약)</th>
-                      <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">담당자</th>
-                      <th class="py-3 px-4 text-[12px] font-bold text-[#1a1c1d]">상태/위험도</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-[#c5c6ce]">
-                    ${rowsHtml}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            <footer class="mt-auto">
-              <h2 class="text-[20px] font-bold text-[#031631] mb-4 border-l-4 border-[#0058bc] pl-3">경영진 검토 의견</h2>
-              <div class="w-full border-2 border-dashed border-[#c5c6ce] rounded-xl p-8 min-h-[120px] bg-white">
-                <p class="text-[#44474d] text-[16px] italic opacity-50">의견을 기재해 주십시오.</p>
-              </div>
-              <div class="mt-8 flex justify-between items-center text-[10px] text-[#44474d] border-t border-[#c5c6ce] pt-4">
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-[#1a2b47]">Worker Voice Platform</span>
-                  <span>|</span>
-                  <span>${esc(footerDeptName)}</span>
-                </div>
-                <div class="flex items-center gap-4">
-                  <span>대외비 - 경영진 보고용</span>
-                  <span class="font-bold text-[#1a2b47]">Page 1 / 1</span>
-                </div>
-              </div>
-            </footer>
+            <div class="footer-box">
+              <h3>경영진 검토 및 지시사항</h3>
+            </div>
             
-            <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] rotate-[-45deg] select-none no-print">
-              <span class="text-[100px] font-black tracking-widest text-[#031631]">WORKER VOICE</span>
+            <div style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">
+              <div>SeBang Tech &middot; Quality Safety Health Dept</div>
+              <div>Strictly Confidential</div>
             </div>
           </div>
-
+          
           <script>
-            setTimeout(function() { window.print(); }, 3000);
+            // 브라우저 렌더링 최적화를 위해 2.5초 지연 후 인쇄
+            setTimeout(function(){ window.print(); }, 2500);
           <\/script>
         </body>
         </html>
-      `;
-      printWindow.document.write(html);
+      `);
       printWindow.document.close();
     });
   </script>
 </body>
 </html>
-
-```
-
-이번에는 로직이 꼬이거나 누락된 코드 없이 완전히 하나로 통합되었습니다. 확인해 보시고 조금이라도 어색한 부분이 있다면 즉시 수정하겠습니다.
