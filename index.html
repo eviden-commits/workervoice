@@ -1,404 +1,613 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Worker Voice</title>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <title>Worker Voice Admin</title>
   <style>
-    :root {
-      --bg:#f5f5f7; --surface:#fff; --line:#d1d1d6; --text:#1a1c1d; --muted:#44474d;
-      --primary:#1a2b47; --secondary:#0070eb; --low:#28a745; --medium:#ff9500; --high:#ff3b30; --critical:#af52de;
-      --radius:16px; --shadow:0 4px 12px rgba(0,0,0,.05),0 1px 3px rgba(0,0,0,.02);
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    
+    :root { 
+      --bg: #f5f5f7; --surface: #ffffff; --text-primary: #1d1d1f; --text-secondary: #64748b; 
+      --border: #d2d2d7; 
+      --brand: #1428A0;       /* 세방테크 CI 블루 */
+      --brand-hover: #102080; 
+      --brand-dark: #1a2b47;  /* 다크 네이비 */
+      --radius: 12px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
-    .topbar{height:64px;border-bottom:1px solid #c5c6ce;background:var(--surface);display:flex;align-items:center}
-    .topbar-inner{max-width:1280px;width:100%;margin:0 auto;padding:0 16px}
-    .brand{font-size:46px;font-weight:800;color:#0d1b37;line-height:1}
-    .container{max-width:1280px;margin:0 auto;padding:24px 16px 40px}
-    .hero-title{font-size:34px;margin:0 0 8px;color:#0d1b37}
-    .hero-sub{margin:0 0 18px;color:var(--muted)}
-    .grid{display:grid;grid-template-columns:1.35fr .95fr;gap:24px}
-    @media (max-width:1060px){.grid{grid-template-columns:1fr}.brand{font-size:34px}}
-    .card{background:var(--surface);border:1px solid #e9eaee;border-radius:var(--radius);box-shadow:var(--shadow);padding:24px}
-    .section-title{font-size:30px;margin:0 0 14px;color:#0d1b37}
-    .label{font-size:13px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px}
-    input,select,textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit;background:#fff;color:var(--text)}
-    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--secondary);box-shadow:0 0 0 3px rgba(0,112,235,.2)}
-    textarea{min-height:120px;resize:vertical}
-    .form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-    @media (max-width:820px){.form-grid2,.form-grid3{grid-template-columns:1fr}}
-    .risk-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px}
-    .risk-btn{border:0;color:#fff;font-weight:700;border-radius:8px;padding:10px 6px;cursor:pointer;opacity:.55}
-    .risk-btn.active{opacity:1;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
-    .risk-low{background:var(--low)} .risk-medium{background:var(--medium)} .risk-high{background:var(--high)} .risk-critical{background:var(--critical)}
-    .upload-box{border:1px dashed #c5c6ce;background:#f3f3f5;border-radius:10px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .toggle{display:flex;align-items:center;gap:8px;margin-top:8px}
-    .toggle input[type="checkbox"]{width:44px;height:24px}
-    .submit-btn{width:100%;border:0;color:#fff;font-size:22px;font-weight:700;border-radius:10px;padding:14px 16px;cursor:pointer;background:linear-gradient(to bottom,#1a2b47,#0d1624);box-shadow:var(--shadow)}
-    .submit-btn:disabled{opacity:.7;cursor:not-allowed}
-    .notice{font-size:14px;color:var(--muted);margin-top:10px}
-    .success{margin-top:10px;border:1px solid #b9e3c2;background:#effbf2;color:#136b2a;border-radius:10px;padding:12px 14px;font-size:14px}
-    .lookup-box{display:flex;gap:8px;margin:10px 0 12px}
-    .lookup-box input{flex:1}
-    .lookup-btn{border:0;border-radius:10px;background:var(--secondary);color:#fff;font-weight:700;padding:10px 16px;cursor:pointer}
-    .item{border-top:1px solid #ececf0;padding:12px 0}
-    .item:first-child{border-top:0}
-    .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;margin-right:6px}
-    .status{font-size:12px;color:var(--muted)}
-    .title{font-size:18px;font-weight:700;margin:6px 0;color:#111f3f}
-    .meta{color:var(--muted);font-size:13px}
-    .content{margin-top:6px;white-space:pre-wrap}
+    
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+    
+    /* --- Layout --- */
+    #loginSection { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    #dashboardSection { max-width: 1400px; margin: 0 auto; padding: 40px 24px; display: none; }
+    
+    /* --- Login --- */
+    .login-card { background: var(--surface); width: 100%; max-width: 420px; padding: 48px 36px; border-radius: var(--radius); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); text-align: center; border: 1px solid var(--border); }
+    .login-card h1 { font-size: 26px; font-weight: 800; color: var(--brand-dark); margin: 0 0 8px; letter-spacing: -0.5px; }
+    .login-card p { font-size: 14px; color: var(--text-secondary); margin: 0 0 32px; }
+    
+    .input-group { margin-bottom: 20px; text-align: left; }
+    .input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+    .text-input, .select-input { width: 100%; padding: 12px 16px; font-size: 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; transition: all 0.2s; color: var(--text-primary); }
+    .text-input:focus, .select-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(20,40,160,0.15); }
+    
+    .btn { display: inline-flex; justify-content: center; align-items: center; gap: 8px; width: 100%; padding: 12px 20px; font-size: 14px; font-weight: 700; font-family: inherit; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: var(--brand-dark); color: #fff; }
+    .btn-primary:hover { background: #0f172a; box-shadow: 0 4px 12px rgba(15,23,42,0.2); }
+    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+    .btn-outline { background: #fff; border: 1px solid var(--border); color: var(--text-primary); }
+    .btn-outline:hover { background: #f1f5f9; }
+    .btn-action { background: var(--brand); color: #fff; }
+    .btn-action:hover { background: var(--brand-hover); box-shadow: 0 4px 12px rgba(20,40,160,0.2); }
+    
+    .msg-box { margin-top: 16px; font-size: 13px; font-weight: 600; min-height: 20px; }
+    .msg-error { color: #ef4444; }
+    .msg-info { color: var(--brand); }
+
+    /* --- Dashboard --- */
+    .header-bar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .header-bar h2 { font-size: 28px; font-weight: 800; margin: 0 0 8px; color: var(--brand-dark); letter-spacing: -0.5px; }
+    .site-badge { display: inline-block; background: #e0e7ff; color: #4338ca; padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 700; }
+    
+    /* Filter Bar */
+    .filter-card { background: var(--surface); padding: 20px 24px; border-radius: var(--radius); box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--border); margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; }
+    .filter-group label { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+    .date-wrap { display: flex; align-items: center; gap: 8px; }
+    .date-wrap input { width: 140px; }
+    .filter-card select { width: 130px; }
+    
+    /* Stats */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi-card { background: var(--surface); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; }
+    .kpi-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px; }
+    .kpi-value { font-size: 32px; font-weight: 800; color: var(--brand-dark); line-height: 1; }
+    .kpi-highlight { color: var(--brand); }
+    .kpi-danger { color: #ef4444; }
+    .kpi-success { color: #10b981; }
+
+    /* Table */
+    .table-container { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1100px; }
+    th { background: #f8fafc; padding: 16px 20px; font-size: 12px; font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border); letter-spacing: 0.5px; }
+    td { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid #f1f5f9; color: var(--text-primary); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f1f5f9; }
+    
+    .badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+    .bg-blue { background: #eff6ff; color: #2563eb; }
+    .bg-orange { background: #fff7ed; color: #ea580c; }
+    .bg-green { background: #ecfdf5; color: #059669; }
+    .bg-gray { background: #f1f5f9; color: #64748b; }
+    .bg-red { background: #fef2f2; color: #dc2626; }
+    .bg-purple { background: #faf5ff; color: #9333ea; }
+
+    /* Modal */
+    #editModal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); padding: 20px; }
+    .modal-content { background: var(--surface); border-radius: 16px; width: 100%; max-width: 540px; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    .modal-content h3 { margin: 0 0 24px; font-size: 20px; font-weight: 800; color: var(--brand-dark); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   </style>
 </head>
 <body>
-  <header class="topbar"><div class="topbar-inner"><div class="brand">Worker Voice</div></div></header>
-  <main class="container">
-    <h2 class="hero-title">근로자의 의견청취(작업중지권포함)</h2>
-    <p class="hero-sub">안전하고 신뢰할 수 있는 일터를 만들기 위한 여러분의 의견을 들려주세요.</p>
 
-    <div class="grid">
-      <section class="card">
-        <h3 class="section-title">신규 보고서 작성</h3>
-        <form id="voiceForm" method="post" target="submitFrame">
-          <input type="hidden" name="action" value="create" />
-          <input type="hidden" name="response_mode" value="iframe" />
-          <input type="hidden" name="risk_level" id="riskLevel" value="medium" />
-          <input type="hidden" name="is_anonymous" id="isAnonymousHidden" value="FALSE" />
-          <input type="hidden" name="recaptcha_token" id="recaptchaToken" />
-
-          <div class="form-grid2">
-            <div>
-              <label class="label">카테고리</label>
-              <select name="category" id="category" required>
-                <option value="안전관리">안전관리</option>
-                <option value="노무관리">노무관리</option>
-                <option value="기타관리">기타관리</option>
-              </select>
-            </div>
-            <div>
-              <label class="label">위험 수준</label>
-              <div class="risk-row">
-                <button type="button" class="risk-btn risk-low" data-risk="low">낮음</button>
-                <button type="button" class="risk-btn risk-medium active" data-risk="medium">보통</button>
-                <button type="button" class="risk-btn risk-high" data-risk="high">높음</button>
-                <button type="button" class="risk-btn risk-critical" data-risk="critical">긴급</button>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top:12px;">
-            <label class="label">현장 이름</label>
-            <select name="site_name" id="siteName" required><option value="">현장 선택</option></select>
-          </div>
-
-          <div style="margin-top:12px;">
-            <label class="label">제목(상용구)</label>
-            <select id="titleTemplate" required></select>
-            <input id="titleInput" name="title" maxlength="100" placeholder="문제점을 간략하게 요약해 주세요..." style="margin-top:8px;" disabled required />
-          </div>
-
-          <div style="margin-top:12px;">
-            <label class="label">세부 내용</label>
-            <textarea name="content" placeholder="발생 위치, 시간, 관련자 등 구체적인 내용을 입력해 주세요..." required></textarea>
-          </div>
-
-          <div style="margin-top:12px;" class="upload-box">
-            <div class="notice">파일 업로드 (PDF, JPG, PNG)</div>
-            <div>
-              <input id="attachmentFile" type="file" accept="image/*" />
-              <input type="hidden" name="attachment_base64" id="attachmentBase64" />
-              <input type="hidden" name="attachment_name" id="attachmentName" />
-              <input type="hidden" name="attachment_mime" id="attachmentMime" />
-            </div>
-          </div>
-
-          <div class="toggle">
-            <input type="checkbox" id="isAnonymousToggle" />
-            <span><strong>익명으로 제출하기</strong></span>
-          </div>
-
-          <div class="form-grid3" style="margin-top:10px;">
-            <div><label class="label">이름</label><input name="reporter_name" id="reporterName" inputmode="text" /></div>
-            <div><label class="label">전화번호</label><input name="reporter_contact" id="reporterContact" inputmode="numeric" pattern="[0-9]*" maxlength="11" placeholder="01000000000" /></div>
-            <div><label class="label">이메일 주소</label><input name="reporter_email" id="reporterEmail" type="email" placeholder="email@company.com" /></div>
-          </div>
-
-          <button class="submit-btn" id="submitBtn" type="submit" style="margin-top:14px;">보고서 제출하기</button>
-          
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px;">
-            <div style="transform: scale(0.85); transform-origin: 0 0;" class="g-recaptcha" data-sitekey="6LddEQgtAAAAAM8zq-90lWoC40XAuqCmOpe5uT3u"></div>
-            <img src="logo.png" alt="로고" style="max-height: 40px; margin-bottom: 5px;">
-          </div>
-          
-          <div class="notice" id="submitMsg">접수 대기 중</div>
-          <div class="success" id="receiptMsg" style="display:none;"></div>
-        </form>
-        <iframe name="submitFrame" style="display:none"></iframe>
-      </section>
-
-      <section class="card">
-        <h3 style="font-size:30px;margin:0 0 10px;">보고서 및 문의 내역</h3>
-        <div class="lookup-box">
-          <input id="receiptNoInput" maxlength="4" placeholder="접수번호 4자리 입력" />
-          <button class="lookup-btn" id="btnLookup">조회</button>
+  <!-- 1. 로그인 구역 -->
+  <div id="loginSection">
+    <div class="login-card">
+      <h1>Worker Voice Admin</h1>
+      <p id="loginDesc">현장 관리를 위해 등록된 이메일을 입력해 주십시오.</p>
+      
+      <div id="stepEmail">
+        <div class="input-group">
+          <input type="email" id="inputEmail" class="text-input" placeholder="name@example.com" />
         </div>
-        
-        <div style="text-align: right; margin-bottom: 12px;">
-          <a href="#" id="btnFindReceipt" style="font-size: 13px; color: var(--secondary); text-decoration: none; font-weight: 600;">접수번호 잊으셨나요?</a>
+        <button id="btnRequest" class="btn btn-primary">보안 인증</button>
+      </div>
+
+      <div id="stepAuth" style="display:none;">
+        <div class="input-group">
+          <label id="authLabel"></label>
+          <input type="password" id="inputAuth" class="text-input" placeholder="인증 정보 입력" />
         </div>
-        
-        <div id="list"><p class="notice">접수번호로 조회하면 처리결과를 확인할 수 있습니다.</p></div>
-      </section>
+        <button id="btnLogin" class="btn btn-primary">대시보드 접속</button>
+      </div>
+      <div id="loginMsg" class="msg-box"></div>
     </div>
-  </main>
+  </div>
+
+  <!-- 2. 대시보드 구역 -->
+  <div id="dashboardSection">
+    <div class="header-bar">
+      <div>
+        <h2>품질안전보건 관리 대시보드</h2>
+        <div id="siteBadge" class="site-badge">로딩중...</div>
+      </div>
+      <button class="btn btn-outline" style="width: auto;" onclick="location.reload()">시스템 로그아웃</button>
+    </div>
+
+    <!-- 필터 및 리포트 출력 바 -->
+    <div class="filter-card">
+      <div class="filter-group">
+        <label>조회 기간 (접수일 기준)</label>
+        <div class="date-wrap">
+          <input type="date" id="fStart" class="text-input" />
+          <span style="color:var(--text-secondary); font-weight:700;">~</span>
+          <input type="date" id="fEnd" class="text-input" />
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>처리 상태</label>
+        <select id="fStatus" class="select-input">
+          <option value="">전체 상태</option>
+          <option value="active">처리중</option>
+          <option value="in_review">검토중</option>
+          <option value="done">조치완료</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>카테고리</label>
+        <select id="fCategory" class="select-input">
+          <option value="">전체 분류</option>
+          <option value="안전관리">안전관리</option>
+          <option value="노무관리">노무관리</option>
+          <option value="기타관리">기타관리</option>
+        </select>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="display: flex; gap: 12px; align-items: flex-end; height: 100%;">
+        <button id="btnLoad" class="btn btn-primary" style="width: 120px;">데이터 조회</button>
+        <button id="btnExport" class="btn btn-action" style="width: 160px; background: #34c759;">
+          보고서 생성 (PDF)
+        </button>
+      </div>
+    </div>
+
+    <!-- 동적 KPI 통계 -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">해당 기간 총 접수</div>
+        <div class="kpi-value" id="kTotal">0<span style="font-size:16px; font-weight:600; color:var(--text-secondary);">건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">처리 완료 (조치율)</div>
+        <div class="kpi-value kpi-success" id="kDone">0<span style="font-size:16px; font-weight:600;">%</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">긴급 미조치 리스크</div>
+        <div class="kpi-value kpi-danger" id="kCritical">0<span style="font-size:16px; font-weight:600;">건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">검토/처리 진행중</div>
+        <div class="kpi-value kpi-highlight" id="kActive">0<span style="font-size:16px; font-weight:600;">건</span></div>
+      </div>
+    </div>
+
+    <!-- 데이터 테이블 -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px;">상태</th>
+            <th style="width:80px;">위험도</th>
+            <th style="width:110px;">접수일</th>
+            <th style="width:150px;">현장명</th>
+            <th>제보 요약 (제목)</th>
+            <th style="width:120px;">목표일</th>
+            <th style="width:120px;">담당자</th>
+            <th style="width:90px; text-align:center;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="8" style="text-align:center; padding:60px; color:var(--text-secondary);">기간 및 조건을 설정하여 데이터를 조회해 주십시오.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. 상세조치 모달 -->
+  <div id="editModal">
+    <div class="modal-content">
+      <h3 id="mTitle">조치 내용 편집</h3>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>진행 상태</label>
+          <select id="mStatus" class="select-input">
+            <option value="active">처리중</option>
+            <option value="in_review">검토중</option>
+            <option value="hold">보류</option>
+            <option value="done">조치완료</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>위험도</label>
+          <select id="mRisk" class="select-input">
+            <option value="low">낮음</option>
+            <option value="medium">보통</option>
+            <option value="high">높음</option>
+            <option value="critical">긴급</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>담당자 지정</label>
+          <input type="text" id="mOwner" class="text-input" placeholder="이름/부서" />
+        </div>
+        <div class="input-group">
+          <label>처리 목표일</label>
+          <input type="date" id="mDate" class="text-input" />
+        </div>
+      </div>
+      <div class="input-group">
+        <label>조치 결과 및 피드백 내용</label>
+        <textarea id="mNote" class="text-input" style="min-height: 100px; resize: vertical;" placeholder="이 내용은 제보자에게 메일로 안내됩니다."></textarea>
+      </div>
+      
+      <label style="font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom: 24px; cursor:pointer;">
+        <input type="checkbox" id="chkNotify" checked style="width:16px; height:16px;" />
+        저장 시 제보자에게 결과 메일 자동 발송
+      </label>
+
+      <div style="display:flex; gap:12px;">
+        <button class="btn btn-outline" onclick="document.getElementById('editModal').style.display='none'">취소</button>
+        <button class="btn btn-primary" id="btnSaveUpdate">업데이트 저장</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // 주의: 배포 후 발급받은 실제 GAS URL로 교체해야 합니다.
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyEhd91bxscWGtnLiEwb74vpEcEsNicXHaEdquyLjEkY3-Wxrv-5_5OMoF3f0s6NRzG/exec";
     
-    const titleTemplates = {
-      "안전관리": ["작업중지권 발동","보호구 미착용/지급 부족","추락·낙하 위험 구간 안전조치 미흡","전기·기계 설비 안전점검 필요","비상대응(소화기·대피동선) 점검 요청"],
-      "노무관리": ["근로계약/업무지시 내용 확인 요청","근무시간·휴게시간 운영 개선 요청","임금/수당 산정 관련 확인 요청","현장 배치·업무분장 조정 요청","직장 내 고충/소통 개선 요청"],
-      "기타관리": ["현장 시설·환경 개선 요청","자재·장비 지원 요청","업무 프로세스 개선 제안","교육·안내자료 보강 요청","기타 운영 관련 건의"]
-    };
-    const riskLabel = { low:"낮음", medium:"보통", high:"높음", critical:"긴급" };
-    const statusLabel = { active:"처리중", in_review:"검토중", done:"완료", hold:"보류" };
+    let authEmail = "", authCode = "", isMaster = false;
+    let allRecords = [], filteredRecords = [], editTargetId = "";
 
-    const voiceForm = document.getElementById("voiceForm");
-    const submitBtn = document.getElementById("submitBtn");
-    const submitMsg = document.getElementById("submitMsg");
-    const receiptMsg = document.getElementById("receiptMsg");
-    const categoryEl = document.getElementById("category");
-    const titleTemplateEl = document.getElementById("titleTemplate");
-    const titleInputEl = document.getElementById("titleInput");
-    const siteNameEl = document.getElementById("siteName");
-    const isAnonymousToggle = document.getElementById("isAnonymousToggle");
-    const isAnonymousHidden = document.getElementById("isAnonymousHidden");
-    const reporterName = document.getElementById("reporterName");
-    const reporterContact = document.getElementById("reporterContact");
-    const reporterEmail = document.getElementById("reporterEmail");
-    const receiptNoInput = document.getElementById("receiptNoInput");
-    const listEl = document.getElementById("list");
-    const riskLevelEl = document.getElementById("riskLevel");
-    const recaptchaTokenEl = document.getElementById("recaptchaToken");
-    const attachmentFile = document.getElementById("attachmentFile");
-    const attachmentBase64 = document.getElementById("attachmentBase64");
-    const attachmentName = document.getElementById("attachmentName");
-    const attachmentMime = document.getElementById("attachmentMime");
+    // [버그 수정] 날짜 기본값 로직: UTC 꼼수 제거, 로컬 기준 YYYY-MM-DD 생성
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById("fStart").value = `${yyyy}-${mm}-01`;
+    document.getElementById("fEnd").value = `${yyyy}-${mm}-${dd}`;
 
-    function esc(v){ return String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
-    function sanitizeName(v){ return String(v||"").replace(/[^A-Za-z가-힣\s]/g,"").replace(/\s{2,}/g," ").trim(); }
-    function sanitizePhone(v){ return String(v||"").replace(/\D/g,""); }
+    function setMsg(txt, isErr=false) {
+      const el = document.getElementById("loginMsg");
+      el.textContent = txt;
+      el.className = isErr ? "msg-box msg-error" : "msg-box msg-info";
+    }
+    function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-    function jsonp(url, onOk, onError){
-      const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*1000);
-      let done = false;
-      const timer = setTimeout(() => { if(done) return; done = true; delete window[cb]; onError && onError("요청 시간 초과"); }, 8000);
-      window[cb] = function(res){ if(done) return; done = true; clearTimeout(timer); delete window[cb]; onOk(res); };
-      url.searchParams.set("callback", cb);
+    // 데이터 조회용 GET (JSONP) - 조회는 GET 유지
+    function jsonp(params, cb, errCb) {
+      const url = new URL(GAS_URL);
+      for(let k in params) url.searchParams.set(k, params[k]);
+      const cbn = "cb_" + Date.now() + Math.floor(Math.random()*1000);
+      let isDone = false;
+      const t = setTimeout(() => { if(!isDone){ isDone=true; delete window[cbn]; errCb("서버 응답 지연"); } }, 15000);
+      window[cbn] = (res) => { if(!isDone){ isDone=true; clearTimeout(t); delete window[cbn]; cb(res); } };
+      url.searchParams.set("callback", cbn);
       const s = document.createElement("script");
       s.src = url.toString();
-      s.onerror = () => { if(done) return; done = true; clearTimeout(timer); delete window[cb]; onError && onError("스크립트 로드 실패"); };
+      s.onerror = () => { if(!isDone){ isDone=true; clearTimeout(t); delete window[cbn]; errCb("네트워크 오류"); } };
       s.onload = () => s.remove();
       document.body.appendChild(s);
     }
 
-    function setIdentityMode(){
-      const anon = isAnonymousToggle.checked;
-      isAnonymousHidden.value = anon ? "TRUE" : "FALSE";
-      reporterName.disabled = anon; reporterContact.disabled = anon; reporterEmail.disabled = anon;
-      reporterName.required = !anon; reporterContact.required = !anon; reporterEmail.required = !anon;
-      if(anon){ reporterName.value=""; reporterContact.value=""; reporterEmail.value=""; }
-    }
-
-    function renderTitleTemplates(){
-      const items = titleTemplates[categoryEl.value] || [];
-      titleTemplateEl.innerHTML = ['<option value="">상용구 선택</option>']
-        .concat(items.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`))
-        .concat('<option value="__custom__">직접입력</option>').join("");
-      titleInputEl.value = ""; titleInputEl.disabled = true;
-    }
-
-    function onTemplateChange(){
-      const v = titleTemplateEl.value;
-      if(v === "__custom__"){ titleInputEl.disabled = false; titleInputEl.value = ""; titleInputEl.focus(); return; }
-      if(!v){ titleInputEl.disabled = true; titleInputEl.value = ""; return; }
-      titleInputEl.disabled = false; titleInputEl.value = v; titleInputEl.disabled = true;
-    }
-
-    function loadSites(){
-      const url = new URL(GAS_URL); url.searchParams.set("action","sites");
-      jsonp(url, (res) => {
-        if(!res || !res.ok){ submitMsg.textContent = "현장 로딩 실패: 서버 응답 오류"; return; }
-        const items = res.items || [];
-        if(!items.length){ submitMsg.textContent = "현장 로딩 실패: site 탭 데이터 없음"; return; }
-        siteNameEl.innerHTML = '<option value="">현장 선택</option>' + items.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
-        submitMsg.textContent = `현장 로딩 완료 (${items.length}개)`;
-      }, (reason) => {
-        siteNameEl.innerHTML = '<option value="">현장 선택 (실패)</option>';
-        submitMsg.textContent = `현장 로딩 실패: ${reason} / 배포권한(Anyone)·URL·재배포 확인`;
-      });
-    }
-
-    function renderList(items){
-      if(!items.length){ listEl.innerHTML = '<p class="notice">일치하는 접수 건이 없습니다.</p>'; return; }
-      listEl.innerHTML = items.map(it => {
-        const risk = it.risk_level || "medium";
-        const riskColor = risk === "low" ? "var(--low)" : risk === "high" ? "var(--high)" : risk === "critical" ? "var(--critical)" : "var(--medium)";
-        return `<article class="item">
-          <div><span class="pill" style="background:${riskColor};">${esc(riskLabel[risk] || risk)}</span><span class="status">${esc(statusLabel[it.status] || it.status || "")}</span></div>
-          <div class="title">${esc(it.title || "")}</div>
-          <div class="meta">${esc(it.category || "")} · ${esc(it.created_at || "")} · ${esc(it.site_name || "")}</div>
-          <div class="content">${esc(it.content || "")}</div>
-        </article>`;
-      }).join("");
-    }
-
-    // 접수번호 4자리 검증 오타 수정 (\d)
-    function lookupByReceipt(){
-      const receipt = (receiptNoInput.value || "").trim();
-      if(!/^\d{4}$/.test(receipt)){ listEl.innerHTML = '<p class="notice">접수번호 4자리를 입력해 주세요.</p>'; return; }
-      const url = new URL(GAS_URL);
-      url.searchParams.set("action","receipt_lookup");
-      url.searchParams.set("receipt_no",receipt);
-      jsonp(url, (res) => {
-        if(!res || !res.ok){ listEl.innerHTML = `<p class="notice">조회 실패: ${esc((res && res.error) || "unknown")}</p>`; return; }
-        renderList(res.items || []);
-      }, (reason) => { listEl.innerHTML = `<p class="notice">조회 실패: ${esc(reason)}</p>`; });
-    }
-
-    function fileToDataUrl(file){
-      return new Promise((resolve,reject)=>{ const r = new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file); });
-    }
-
-    document.querySelectorAll(".risk-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".risk-btn").forEach(x => x.classList.remove("active"));
-        btn.classList.add("active");
-        riskLevelEl.value = btn.dataset.risk;
-      });
-    });
-
-    // 모바일 입력 충돌 방지를 위해 input 대신 blur로 변경
-    reporterName.addEventListener("blur", () => { const v = sanitizeName(reporterName.value); if(v !== reporterName.value) reporterName.value = v; });
-    reporterContact.addEventListener("input", () => { const v = sanitizePhone(reporterContact.value); if(v !== reporterContact.value) reporterContact.value = v; });
-    isAnonymousToggle.addEventListener("change", setIdentityMode);
-    categoryEl.addEventListener("change", renderTitleTemplates);
-    titleTemplateEl.addEventListener("change", onTemplateChange);
-    document.getElementById("btnLookup").addEventListener("click", lookupByReceipt);
-
-    // 접수번호 찾기 기능 추가
-    document.getElementById("btnFindReceipt").addEventListener("click", (e) => {
-      e.preventDefault();
-      const email = prompt("접수 시 입력했던 이메일 주소를 입력해 주세요.\n(익명 접수건은 조회가 불가능합니다)");
-      if (!email) return;
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        alert("유효한 이메일 주소를 입력해 주세요.");
-        return;
-      }
-
-      const url = new URL(GAS_URL);
-      url.searchParams.set("action", "find_receipt");
-      url.searchParams.set("email", email);
-
-      listEl.innerHTML = '<p class="notice">이메일로 접수번호를 발송 중입니다...</p>';
-
-      jsonp(url, (res) => {
-        if (!res || !res.ok) {
-          listEl.innerHTML = `<p class="notice" style="color: var(--high);">조회 실패: ${esc((res && res.error) || "알 수 없는 오류")}</p>`;
-          return;
-        }
-        listEl.innerHTML = `<p class="notice" style="color: var(--low); font-weight: 600;">${esc(res.message)}</p>`;
-      }, (reason) => {
-        listEl.innerHTML = `<p class="notice" style="color: var(--high);">조회 실패: ${esc(reason)}</p>`;
-      });
-    });
-
-    voiceForm.addEventListener("submit", async (ev) => {
-      ev.preventDefault();
-      reporterName.value = sanitizeName(reporterName.value);
-      reporterContact.value = sanitizePhone(reporterContact.value);
-
-      if(window.grecaptcha){
-        const token = grecaptcha.getResponse();
-        if(!token){ submitMsg.textContent = "자동생성방지 확인을 완료해 주세요."; return; }
-        recaptchaTokenEl.value = token;
-      }
-
-      const file = attachmentFile.files && attachmentFile.files[0];
-      if(file){
-        if(file.size > 10*1024*1024){ submitMsg.textContent = "첨부파일은 최대 10MB까지 가능합니다."; return; }
-        submitMsg.textContent = "첨부파일 처리 중...";
-        const dataUrl = await fileToDataUrl(file);
-        attachmentBase64.value = dataUrl;
-        attachmentName.value = file.name || "attachment";
-        attachmentMime.value = file.type || "application/octet-stream";
-      } else {
-        attachmentBase64.value = ""; attachmentName.value = ""; attachmentMime.value = "";
-      }
-
-      // 폼 제출 직전 비활성화(disabled) 해제
-      titleInputEl.disabled = false;
-      reporterName.disabled = false;
-      reporterContact.disabled = false;
-      reporterEmail.disabled = false;
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = "제출 중...";
-      submitMsg.textContent = "접수 중...";
-      receiptMsg.style.display = "none";
-      voiceForm.action = GAS_URL;
-      voiceForm.submit();
-      window.__submitPending = true;
-      setTimeout(() => {
-        if(!window.__submitPending) return;
-        submitMsg.textContent = "접수 응답 지연: 서버 재배포/권한/리캡차 설정을 확인해 주세요.";
-      }, 10000);
-    });
-
-    window.addEventListener("message", (event) => {
-      if (!window.__submitPending) return;
-      const data = event.data || {};
-      const isStructured =
-        data && typeof data === "object" &&
-        Object.prototype.hasOwnProperty.call(data, "ok") &&
-        (Object.prototype.hasOwnProperty.call(data, "id") || Object.prototype.hasOwnProperty.call(data, "error"));
-      if (!isStructured) return;
-
-      window.__submitPending = false;
-      submitBtn.disabled = false;
-      submitBtn.textContent = "보고서 제출하기";
-
-      if(!data.ok){
-        submitMsg.textContent = `접수 실패: ${data.error || "unknown error"}`;
-        alert(`접수 실패\n${data.error || "unknown error"}`);
-        return;
-      }
-      if(!data.id){
-        submitMsg.textContent = "접수 실패: 접수번호 수신 실패";
-        alert("접수 실패\n접수번호 수신 실패");
-        return;
-      }
-      const anon = isAnonymousToggle.checked;
-      const receipt = String(data.id).slice(-4);
-      submitMsg.textContent = anon
-        ? "접수가 완료되었으나, 개선결과는 통지받지 못할수 있습니다."
-        : "접수가 완료되었습니다. 소중한 제보 감사합니다.";
-      receiptMsg.style.display = "block";
-      receiptMsg.innerHTML = `보고서가 성공적으로 제출되었습니다. 접수번호는 <strong>#${esc(receipt)}</strong> 입니다.`;
-      receiptNoInput.value = receipt;
-      if(window.grecaptcha) grecaptcha.reset();
+    // 1. 로그인 인증
+    document.getElementById("btnRequest").addEventListener("click", () => {
+      const email = document.getElementById("inputEmail").value.trim();
+      if(!email) return setMsg("이메일을 입력해 주십시오.", true);
       
-      setIdentityMode();
-      onTemplateChange();
+      authEmail = email;
+      document.getElementById("btnRequest").disabled = true;
+      setMsg("보안 권한 확인 중...");
+
+      jsonp({ action: "send_site_otp", contact_email: authEmail }, (res) => {
+        document.getElementById("btnRequest").disabled = false;
+        if(!res || !res.ok) return setMsg("미등록 계정입니다. 관리자에게 권한을 요청하세요.", true);
+        
+        document.getElementById("stepEmail").style.display = "none";
+        document.getElementById("stepAuth").style.display = "block";
+        document.getElementById("loginDesc").style.display = "none";
+        
+        isMaster = res.is_master;
+        if(isMaster) {
+          document.getElementById("authLabel").textContent = "마스터 권한 승인. 접속 키를 입력하세요.";
+          document.getElementById("inputAuth").placeholder = "마스터 키 입력";
+          setMsg("");
+        } else {
+          document.getElementById("authLabel").textContent = "메일로 발송된 6자리 코드를 입력하세요.";
+          document.getElementById("inputAuth").placeholder = "6자리 코드";
+          setMsg("인증 메일이 발송되었습니다.");
+        }
+      }, (err) => {
+        document.getElementById("btnRequest").disabled = false;
+        setMsg(err, true);
+      });
     });
 
-    setIdentityMode();
-    renderTitleTemplates();
-    loadSites();
+    // 2. 대시보드 로드 및 필터링
+    document.getElementById("btnLogin").addEventListener("click", () => fetchAndFilter(true));
+    document.getElementById("btnLoad").addEventListener("click", () => fetchAndFilter(false));
+
+    function fetchAndFilter(isLoginAttempt) {
+      if(isLoginAttempt) {
+        const code = document.getElementById("inputAuth").value.trim();
+        if(!authCode && !code) return setMsg("인증 정보를 입력하세요.", true);
+        if(code) authCode = code;
+        document.getElementById("btnLogin").disabled = true;
+        setMsg("안전 데이터를 동기화 중입니다...");
+      }
+
+      jsonp({
+        action: "site_list",
+        contact_email: authEmail,
+        status: document.getElementById("fStatus").value,
+        category: document.getElementById("fCategory").value
+      }, (res) => {
+        if(isLoginAttempt) document.getElementById("btnLogin").disabled = false;
+        if(!res || !res.ok) {
+          if(isLoginAttempt) setMsg("인증 실패. 입력 정보를 확인하세요.", true);
+          else alert("데이터 조회 실패");
+          authCode = ""; return;
+        }
+
+        if(isLoginAttempt) {
+          document.getElementById("loginSection").style.display = "none";
+          document.getElementById("dashboardSection").style.display = "block";
+          const sites = res.allowed_sites || [];
+          document.getElementById("siteBadge").textContent = isMaster ? "통합 마스터" : (sites.length===1 ? sites[0] : "다중 현장");
+        }
+
+        allRecords = res.items || [];
+        
+        const sDate = document.getElementById("fStart").value;
+        const eDate = document.getElementById("fEnd").value;
+        filteredRecords = allRecords.filter(it => {
+          const d = it.created_at.substring(0, 10);
+          if(sDate && d < sDate) return false;
+          if(eDate && d > eDate) return false;
+          return true;
+        });
+
+        renderDashboard();
+      }, (err) => {
+        if(isLoginAttempt) {
+          document.getElementById("btnLogin").disabled = false;
+          setMsg(err, true);
+        } else alert("조회 중 오류 발생");
+      });
+    }
+
+    function renderDashboard() {
+      let total = filteredRecords.length, done = 0, critical = 0, active = 0;
+      filteredRecords.forEach(it => {
+        if(it.status === 'done') done++;
+        else {
+          if(it.status === 'active' || it.status === 'in_review') active++;
+          if(it.risk_level === 'critical') critical++;
+        }
+      });
+      
+      const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+      document.getElementById('kTotal').innerHTML = `${total}<span style="font-size:16px; font-weight:600; color:var(--text-secondary);">건</span>`;
+      document.getElementById('kDone').innerHTML = `${rate}<span style="font-size:16px; font-weight:600;">%</span>`;
+      document.getElementById('kCritical').innerHTML = `${critical}<span style="font-size:16px; font-weight:600;">건</span>`;
+      document.getElementById('kActive').innerHTML = `${active}<span style="font-size:16px; font-weight:600;">건</span>`;
+
+      const tbody = document.getElementById("tbody");
+      if(total === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:60px; color:var(--text-secondary);">해당 기간 및 조건에 맞는 제보 내역이 없습니다.</td></tr>';
+        return;
+      }
+
+      const sMap = { "active":"bg-blue", "in_review":"bg-orange", "done":"bg-green", "hold":"bg-gray" };
+      const sTxt = { "active":"처리중", "in_review":"검토중", "done":"완료", "hold":"보류" };
+      const rMap = { "low":"bg-green", "medium":"bg-orange", "high":"bg-red", "critical":"bg-purple" };
+      const rTxt = { "low":"낮음", "medium":"보통", "high":"높음", "critical":"긴급" };
+
+      tbody.innerHTML = filteredRecords.map(it => `
+        <tr>
+          <td><span class="badge ${sMap[it.status]||'bg-gray'}">${sTxt[it.status]||it.status}</span></td>
+          <td><span class="badge ${rMap[it.risk_level]||'bg-gray'}">${rTxt[it.risk_level]||it.risk_level}</span></td>
+          <td style="color:var(--text-secondary); font-size:13px;">${String(it.created_at).substring(0,10)}</td>
+          <td style="font-weight:700; color:var(--brand-dark);">${esc(it.site_name)}</td>
+          <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${esc(it.title)}">${esc(it.title)}</td>
+          <td style="font-size:13px;">${esc(it.due_date)||'-'}</td>
+          <td style="font-size:13px;">${esc(it.action_owner)||'-'}</td>
+          <td style="text-align:center;"><button class="btn btn-outline" style="padding:6px 12px; font-size:12px;" onclick="openModal('${it.id}')">수정</button></td>
+        </tr>
+      `).join("");
+    }
+
+    // 3. 모달 제어 및 업데이트 저장 (보안 취약점 POST로 수정)
+    window.openModal = function(id) {
+      const it = allRecords.find(r => r.id === id);
+      if(!it) return;
+      editTargetId = id;
+      document.getElementById("mStatus").value = it.status || "active";
+      document.getElementById("mRisk").value = it.risk_level || "medium";
+      document.getElementById("mOwner").value = it.action_owner || "";
+      document.getElementById("mDate").value = it.due_date || "";
+      document.getElementById("mNote").value = it.action_note || "";
+      document.getElementById("editModal").style.display = "flex";
+    };
+
+    document.getElementById("btnSaveUpdate").addEventListener("click", () => {
+      const btn = document.getElementById("btnSaveUpdate");
+      btn.disabled = true; btn.textContent = "업데이트 중...";
+
+      const payload = {
+        action: "admin_update",
+        contact_email: authEmail,
+        id: editTargetId,
+        status: document.getElementById("mStatus").value,
+        risk_level: document.getElementById("mRisk").value,
+        action_owner: document.getElementById("mOwner").value,
+        due_date: document.getElementById("mDate").value,
+        action_note: document.getElementById("mNote").value,
+        notify: document.getElementById("chkNotify").checked ? "TRUE" : "FALSE"
+      };
+      if(isMaster) payload.token = authCode; else payload.site_otp = authCode;
+
+      // [보안 조치] URL 파라미터 노출 방지를 위해 POST(fetch) 사용
+      // *주의*: 구글 앱스스크립트(백엔드) 코드에 doPost(e) 함수가 구성되어 있어야 정상 작동합니다.
+      const formData = new URLSearchParams();
+      for (let key in payload) {
+        formData.append(key, payload[key]);
+      }
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(res => {
+        btn.disabled = false; btn.textContent = "업데이트 저장";
+        if(!res || !res.ok) return alert("저장 실패. 권한을 확인하세요.");
+        document.getElementById("editModal").style.display = "none";
+        fetchAndFilter(false);
+      })
+      .catch(err => {
+        btn.disabled = false; btn.textContent = "업데이트 저장"; alert("통신 오류 또는 CORS 문제 발생. (백엔드 doPost 확인 필요)");
+      });
+    });
+
+    // 4. 리포트 PDF 출력 (XSS 이중 방어 적용)
+    document.getElementById("btnExport").addEventListener("click", () => {
+      if(!filteredRecords.length) return alert("출력할 데이터가 없습니다. 기간을 확인하세요.");
+      
+      const sDate = document.getElementById("fStart").value;
+      const eDate = document.getElementById("fEnd").value;
+      const printDate = new Date().toISOString().substring(0,10);
+      const siteName = document.getElementById("siteBadge").textContent;
+
+      const total = filteredRecords.length;
+      const done = filteredRecords.filter(r => r.status === 'done').length;
+      const active = filteredRecords.filter(r => r.status === 'active' || r.status === 'in_review').length;
+      const critical = filteredRecords.filter(r => r.risk_level === 'critical').length;
+      const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      const rTxt = { "low":"낮음", "medium":"보통", "high":"높음", "critical":"긴급" };
+      const sTxt = { "active":"처리중", "in_review":"검토중", "done":"완료", "hold":"보류" };
+
+      const rowsHtml = filteredRecords.map(it => `
+        <tr style="page-break-inside: avoid; border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 12px 8px; font-size: 11px; color: #475569;">${esc(String(it.created_at).substring(0,10))}</td>
+          <td style="padding: 12px 8px; font-size: 12px; font-weight: 600; color: #0f172a;">${it.is_anonymous==="TRUE" ? "익명" : esc(it.reporter_name)}</td>
+          <td style="padding: 12px 8px; font-size: 12px; color: #1e293b; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(it.title)}</td>
+          <td style="padding: 12px 8px; font-size: 12px; color: #475569;">${esc(it.action_owner)||'-'}</td>
+          <td style="padding: 12px 8px; font-size: 11px; font-weight: 700; color: ${it.status==='done'?'#059669':(it.risk_level==='critical'?'#dc2626':'#3b82f6')}; text-align: right;">
+            ${esc(rTxt[it.risk_level])} / ${esc(sTxt[it.status])}
+          </td>
+        </tr>
+      `).join('');
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+          <meta charset="utf-8"/>
+          <title>Worker Voice 리포트</title>
+          <style>
+            @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+            body { font-family: 'Pretendard', sans-serif; color: #0f172a; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; background: #fff; }
+            @media print {
+              @page { size: A4 portrait; margin: 15mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .no-print { display: none; }
+            }
+            .container { max-width: 210mm; margin: 0 auto; }
+            .header { border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+            .title h1 { margin: 0 0 4px; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+            .title p { margin: 0; font-size: 12px; color: #64748b; }
+            .meta { text-align: right; font-size: 11px; color: #64748b; line-height: 1.6; }
+            .meta strong { color: #0f172a; }
+            
+            .kpi-wrap { display: flex; gap: 16px; margin-bottom: 32px; }
+            .kpi-box { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; text-align: center; background: #f8fafc; }
+            .kpi-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 8px; }
+            .kpi-val { font-size: 24px; font-weight: 800; }
+            
+            table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+            th { background: #f1f5f9; padding: 10px 8px; font-size: 11px; font-weight: 700; color: #475569; text-align: left; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; }
+            
+            .footer-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; min-height: 120px; position: relative; }
+            .footer-box h3 { margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #0f172a; }
+            .footer-box::after { content: "의견 기재란"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 14px; color: #cbd5e1; font-weight: 600; letter-spacing: 2px; }
+            
+            .watermark { position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 120px; font-weight: 900; color: rgba(0,0,0,0.03); z-index: -1; white-space: nowrap; }
+          </style>
+        </head>
+        <body>
+          <div class="watermark">CONFIDENTIAL</div>
+          <div class="container">
+            <div class="header">
+              <div class="title">
+                <h1>안전보건 현황 리포트</h1>
+                <p>Worker Voice System &middot; 경영진 요약 보고서</p>
+              </div>
+              <div class="meta">
+                <div>대상 현장: <strong>${esc(siteName)}</strong></div>
+                <div>조회 기간: <strong>${esc(sDate)} ~ ${esc(eDate)}</strong></div>
+                <div>출력 일자: <strong>${esc(printDate)}</strong></div>
+              </div>
+            </div>
+            
+            <div class="kpi-wrap">
+              <div class="kpi-box">
+                <div class="kpi-label">총 접수 건수</div>
+                <div class="kpi-val" style="color:#0f172a;">${esc(total)}</div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-label">조치 완료율 (KPI)</div>
+                <div class="kpi-val" style="color:#059669;">${esc(rate)}%</div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-label">진행중 안건</div>
+                <div class="kpi-val" style="color:#3b82f6;">${esc(active)}</div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-label">긴급 리스크</div>
+                <div class="kpi-val" style="color:#dc2626;">${esc(critical)}</div>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 80px;">접수일자</th>
+                  <th style="width: 70px;">제보자</th>
+                  <th>제보 핵심 요약</th>
+                  <th style="width: 100px;">담당자</th>
+                  <th style="width: 100px; text-align: right;">위험/상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+
+            <div class="footer-box">
+              <h3>경영진 검토 및 지시사항</h3>
+            </div>
+            
+            <div style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">
+              <div>SeBang Tech &middot; Quality Safety Health Dept</div>
+              <div>Strictly Confidential</div>
+            </div>
+          </div>
+          
+          <script>
+            setTimeout(function(){ window.print(); }, 2500);
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    });
   </script>
 </body>
 </html>
