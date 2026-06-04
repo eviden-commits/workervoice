@@ -86,6 +86,15 @@
     .modal-content { background: var(--surface); border-radius: 16px; width: 100%; max-width: 540px; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
     .modal-content h3 { margin: 0 0 24px; font-size: 20px; font-weight: 800; color: var(--brand-dark); }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+    @media (max-width: 768px) {
+      #dashboardSection { padding: 20px 14px; }
+      .header-bar { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .filter-card { flex-direction: column; align-items: stretch; }
+      .filter-card select, .date-wrap input { width: 100%; }
+      .date-wrap { flex-wrap: nowrap; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -262,9 +271,10 @@
     let allRecords = [], filteredRecords = [], editTargetId = "";
 
     // 날짜 기본값 세팅 (당월 1일 ~ 오늘)
+    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 2).toISOString().split('T')[0]; // 한국시간 보정
-    const todayStr = today.toISOString().split('T')[0];
+    const firstDay = fmt(new Date(today.getFullYear(), today.getMonth(), 1));
+    const todayStr = fmt(today);
     document.getElementById("fStart").value = firstDay;
     document.getElementById("fEnd").value = todayStr;
 
@@ -362,7 +372,8 @@
         const sDate = document.getElementById("fStart").value;
         const eDate = document.getElementById("fEnd").value;
         filteredRecords = allRecords.filter(it => {
-          const d = it.created_at.substring(0, 10);
+          const d = String(it.created_at || "").substring(0, 10);
+          if(!d) return false;
           if(sDate && d < sDate) return false;
           if(eDate && d > eDate) return false;
           return true;
@@ -410,7 +421,7 @@
         <tr>
           <td><span class="badge ${sMap[it.status]||'bg-gray'}">${sTxt[it.status]||it.status}</span></td>
           <td><span class="badge ${rMap[it.risk_level]||'bg-gray'}">${rTxt[it.risk_level]||it.risk_level}</span></td>
-          <td style="color:var(--text-secondary); font-size:13px;">${String(it.created_at).substring(0,10)}</td>
+          <td style="color:var(--text-secondary); font-size:13px;">${String(it.created_at||"").substring(0,10)||'-'}</td>
           <td style="font-weight:700; color:var(--brand-dark);">${esc(it.site_name)}</td>
           <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${esc(it.title)}">${esc(it.title)}</td>
           <td style="font-size:13px;">${esc(it.due_date)||'-'}</td>
@@ -479,7 +490,7 @@
 
       const rowsHtml = filteredRecords.map(it => `
         <tr style="page-break-inside: avoid; border-bottom: 1px solid #e2e8f0;">
-          <td style="padding: 12px 8px; font-size: 11px; color: #475569;">${String(it.created_at).substring(0,10)}</td>
+          <td style="padding: 12px 8px; font-size: 11px; color: #475569;">${String(it.created_at||"").substring(0,10)||'-'}</td>
           <td style="padding: 12px 8px; font-size: 12px; font-weight: 600; color: #0f172a;">${it.is_anonymous==="TRUE" ? "익명" : esc(it.reporter_name)}</td>
           <td style="padding: 12px 8px; font-size: 12px; color: #1e293b; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(it.title)}</td>
           <td style="padding: 12px 8px; font-size: 12px; color: #475569;">${esc(it.action_owner)||'-'}</td>
@@ -587,7 +598,11 @@
           
           <script>
             // 브라우저 렌더링 최적화를 위해 2.5초 지연 후 인쇄
-            setTimeout(function(){ window.print(); }, 2500);
+            if (document.fonts && document.fonts.ready) {
+              document.fonts.ready.then(function(){ setTimeout(function(){ window.print(); }, 300); });
+            } else {
+              setTimeout(function(){ window.print(); }, 2500);
+            }
           <\/script>
         </body>
         </html>
