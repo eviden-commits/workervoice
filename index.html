@@ -4,6 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
   <title>Worker Voice</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1a2b47" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Worker Voice" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
     :root {
@@ -62,7 +68,39 @@
     .status{font-size:12px;color:var(--muted)}
     .title{font-size:16px;font-weight:700;margin:6px 0;color:#111f3f}
     .meta{color:var(--muted);font-size:13px}
-    .content{margin-top:6px;white-space:pre-wrap;font-size:14px;line-height:1.5}
+   .content{margin-top:6px;white-space:pre-wrap;font-size:14px;line-height:1.5}
+
+    /* 상단 액션 버튼 (설치/QR) */
+    .action-bar{display:flex;gap:10px;margin-bottom:18px}
+    .action-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+      border:1.5px solid var(--line);background:#fff;color:var(--primary);
+      font-size:15px;font-weight:700;border-radius:12px;padding:12px 14px;cursor:pointer;
+      transition:all .15s;width:auto}
+    .action-btn:hover{border-color:var(--secondary);box-shadow:0 0 0 3px rgba(0,112,235,.12)}
+    .action-btn svg{width:20px;height:20px;flex-shrink:0}
+
+    /* QR 모달 */
+    .modal-overlay{position:fixed;inset:0;background:rgba(13,22,55,.6);backdrop-filter:blur(4px);
+      display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+    .modal-overlay.open{display:flex}
+    .modal-box{background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;
+      text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+    .modal-box h3{margin:0 0 6px;font-size:20px;color:#0d1b37}
+    .modal-box p{margin:0 0 18px;font-size:14px;color:var(--muted)}
+    .modal-box img{width:100%;max-width:280px;border-radius:12px;border:1px solid #ececf0}
+    .modal-close{margin-top:18px;border:0;background:var(--primary);color:#fff;font-weight:700;
+      font-size:15px;border-radius:10px;padding:11px 0;width:100%;cursor:pointer}
+
+    /* 설치 안내 하단 배너 */
+    .install-banner{display:none;position:fixed;left:0;right:0;bottom:0;z-index:1100;
+      background:#1a2b47;color:#fff;padding:14px 16px;align-items:center;justify-content:space-between;
+      gap:12px;box-shadow:0 -4px 12px rgba(0,0,0,.15)}
+    .install-banner.open{display:flex}
+    .install-banner .ib-text{font-size:14px;line-height:1.4}
+    .ib-actions{display:flex;gap:8px;flex-shrink:0}
+    .ib-later{border:0;background:transparent;color:#9fb0cc;font-size:14px;cursor:pointer;padding:8px;width:auto}
+    .ib-install{border:0;background:#0070eb;color:#fff;font-weight:700;font-size:14px;
+      border-radius:8px;padding:8px 16px;cursor:pointer;width:auto}
 
     /* =========================================
        📱 모바일 디바이스 최적화 (반응형 쿼리) 
@@ -91,7 +129,7 @@
       /* 리캡차 및 로고 모바일 최적화 (가운데 정렬 및 크기 축소) */
       .captcha-container { flex-direction: column; align-items: center; justify-content: center; width: 100%; overflow-x: hidden; }
       .recaptcha-wrap { width: 258px; height: 65px; overflow: hidden; }
-      .recaptcha-wrap .g-recaptcha { transform: scale(0.85); transform-origin: top left; }/
+      .recaptcha-wrap .g-recaptcha { transform: scale(0.85); transform-origin: top left; }
       
       .submit-btn { font-size: 18px; padding: 12px; }
       .risk-btn { font-size: 12px; padding: 8px 0; }
@@ -105,7 +143,17 @@
     <p class="hero-sub">안전하고 신뢰할 수 있는 일터를 만들기 위한 여러분의 의견을 들려주세요.</p>
 
     <div class="grid">
-      <section class="card">
+     <section class="card">
+        <div class="action-bar">
+          <button type="button" class="action-btn" id="btnInstall">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            바로가기 설치
+          </button>
+          <button type="button" class="action-btn" id="btnQr">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14" y2="21"></line><line x1="21" y1="14" x2="21" y2="21"></line><line x1="17.5" y1="17.5" x2="17.5" y2="17.5"></line></svg>
+            QR 코드
+          </button>
+        </div>
         <h3 class="section-title">신규 보고서 작성</h3>
         <form id="voiceForm" method="post" target="submitFrame">
           <input type="hidden" name="action" value="create" />
@@ -198,7 +246,28 @@
         </div>
         
         <div id="list"><p class="notice">접수번호로 조회하면 처리결과를 확인할 수 있습니다.</p></div>
-      </section>
+     </section>
+    </div>
+
+    <!-- QR 모달 -->
+    <div class="modal-overlay" id="qrModal">
+      <div class="modal-box">
+        <h3>Worker Voice</h3>
+        <p>아래 QR을 스캔하면 바로 접속됩니다.</p>
+        <img src="qr_index.png" alt="Worker Voice QR 코드" />
+        <button class="modal-close" id="btnQrClose">닫기</button>
+      </div>
+    </div>
+
+    <!-- 설치 안내 하단 배너 -->
+    <div class="install-banner" id="installBanner">
+      <div class="ib-text" id="ibText">
+        <strong>Worker Voice</strong>를 홈 화면에 추가하면<br>더 빠르게 접속할 수 있어요.
+      </div>
+      <div class="ib-actions">
+        <button class="ib-later" id="ibLater">나중에</button>
+        <button class="ib-install" id="ibInstall">설치</button>
+      </div>
     </div>
   </main>
 
@@ -441,6 +510,65 @@
     setIdentityMode();
     renderTitleTemplates();
     loadSites();
+
+    /* ===== QR 모달 ===== */
+    const qrModal = document.getElementById("qrModal");
+    document.getElementById("btnQr").addEventListener("click", () => qrModal.classList.add("open"));
+    document.getElementById("btnQrClose").addEventListener("click", () => qrModal.classList.remove("open"));
+    qrModal.addEventListener("click", (e) => { if(e.target === qrModal) qrModal.classList.remove("open"); });
+
+    /* ===== 설치/바로가기 ===== */
+    const installBanner = document.getElementById("installBanner");
+    const ibText = document.getElementById("ibText");
+    const btnInstall = document.getElementById("btnInstall");
+    let deferredPrompt = null;
+
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+      || window.navigator.standalone === true;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+    // 안드로이드/윈도우 크롬·엣지: 설치 가능 & 미설치일 때만 발생
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if(!isStandalone && !localStorage.getItem("wv_install_dismissed")){
+        installBanner.classList.add("open");
+      }
+    });
+
+    window.addEventListener("appinstalled", () => {
+      installBanner.classList.remove("open");
+      deferredPrompt = null;
+    });
+
+    async function triggerInstall(){
+      if(deferredPrompt){
+        installBanner.classList.remove("open");
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      } else if(isIOS){
+        alert('Safari 공유 버튼(□↑) → "홈 화면에 추가"를 눌러 설치하세요.');
+      } else if(isStandalone){
+        alert("이미 홈 화면에 설치되어 있습니다.");
+      } else {
+        alert('브라우저 메뉴에서 "홈 화면에 추가" 또는 "앱 설치"를 선택하세요.');
+      }
+    }
+
+    btnInstall.addEventListener("click", triggerInstall);
+    document.getElementById("ibInstall").addEventListener("click", triggerInstall);
+    document.getElementById("ibLater").addEventListener("click", () => {
+      installBanner.classList.remove("open");
+      localStorage.setItem("wv_install_dismissed", Date.now());
+    });
+
+    // iOS는 beforeinstallprompt가 없으므로, 미설치 시 배너를 직접 노출
+    if(isIOS && !isStandalone && !localStorage.getItem("wv_install_dismissed")){
+      ibText.innerHTML = '<strong>Worker Voice</strong>를 홈 화면에 추가하려면<br>공유 버튼 → "홈 화면에 추가"를 눌러주세요.';
+      installBanner.classList.add("open");
+    }
+  
   </script>
 </body>
 </html>
