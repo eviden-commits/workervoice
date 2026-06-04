@@ -526,6 +526,28 @@
     const isStandalone = window.matchMedia("(display-mode: standalone)").matches
       || window.navigator.standalone === true;
     const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const ua = navigator.userAgent.toLowerCase();
+    const isInApp = /kakaotalk|naver|line|fban|fbav|instagram|daum|everytimeapp|whale/i.test(ua);
+
+    // 카카오톡 등 인앱 브라우저: 외부 브라우저로 열도록 유도
+    if(isInApp){
+      const isAndroid = /android/i.test(ua);
+      ibText.innerHTML = isAndroid
+        ? '설치하려면 기본 브라우저에서 열어주세요.<br>(우측 상단 ⋮ → "다른 브라우저로 열기")'
+        : 'Safari 등 기본 브라우저에서 열어야<br>홈 화면 추가가 가능합니다.';
+      btnInstall.addEventListener("click", () => {
+        if(isAndroid){
+          // 카카오톡 안드로이드: intent로 Chrome 강제 오픈
+          location.href = "intent://" + location.host + location.pathname +
+            "#Intent;scheme=https;package=com.android.chrome;end";
+        } else {
+          alert('우측 하단 또는 상단 메뉴에서 "Safari로 열기"를 선택해 주세요.');
+        }
+      });
+      if(!isStandalone && !localStorage.getItem("wv_install_dismissed")){
+        installBanner.classList.add("open");
+      }
+    }
 
     // 안드로이드/윈도우 크롬·엣지: 설치 가능 & 미설치일 때만 발생
     window.addEventListener("beforeinstallprompt", (e) => {
@@ -556,8 +578,12 @@
       }
     }
 
-    btnInstall.addEventListener("click", triggerInstall);
-    document.getElementById("ibInstall").addEventListener("click", triggerInstall);
+    if(!isInApp){
+      btnInstall.addEventListener("click", triggerInstall);
+    }
+    document.getElementById("ibInstall").addEventListener("click", () => {
+      if(isInApp){ btnInstall.click(); } else { triggerInstall(); }
+    });
     document.getElementById("ibLater").addEventListener("click", () => {
       installBanner.classList.remove("open");
       localStorage.setItem("wv_install_dismissed", Date.now());
