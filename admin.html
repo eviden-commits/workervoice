@@ -1,3 +1,4 @@
+!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
@@ -451,7 +452,7 @@
       const btn = document.getElementById("btnSaveUpdate");
       btn.disabled = true; btn.textContent = "업데이트 중...";
 
-      const p = {
+      const payload = {
         action: "admin_update", contact_email: authEmail, id: editTargetId,
         status: document.getElementById("mStatus").value,
         risk_level: document.getElementById("mRisk").value,
@@ -460,15 +461,30 @@
         action_note: document.getElementById("mNote").value,
         notify: document.getElementById("chkNotify").checked ? "TRUE" : "FALSE"
       };
-      if(isMaster) p.token = authCode; else p.site_otp = authCode;
+      if(isMaster) payload.token = authCode; else payload.site_otp = authCode;
 
-      jsonp(p, (res) => {
+      // GET(jsonp) 방식 대신 POST(fetch) 방식으로 통신
+      const formData = new URLSearchParams();
+      for (let key in payload) {
+        formData.append(key, payload[key]);
+      }
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(res => {
         btn.disabled = false; btn.textContent = "업데이트 저장";
-        if(!res || !res.ok) return alert("저장 실패. 권한을 확인하세요.");
+        if(!res || !res.ok) {
+          return alert("저장 실패. 권한을 확인하세요. (" + (res.error || "알 수 없는 오류") + ")");
+        }
         document.getElementById("editModal").style.display = "none";
         fetchAndFilter(false); // 재조회
-      }, (err) => {
-        btn.disabled = false; btn.textContent = "업데이트 저장"; alert("통신 오류 발생");
+      })
+      .catch(err => {
+        btn.disabled = false; btn.textContent = "업데이트 저장"; 
+        alert("통신 오류 발생: 서버 응답을 확인하세요.");
       });
     });
 
