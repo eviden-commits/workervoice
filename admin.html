@@ -204,16 +204,20 @@
       </div>
       <div style="flex:1;"></div>
       <div style="display: flex; gap: 12px; align-items: flex-end; height: 100%;">
-        <button id="btnLoad" class="btn btn-primary" style="width: 120px;">데이터 조회</button>
-       <button id="btnExport" class="btn btn-action" style="width: 120px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-          보고서 생성 (PDF)
+       <button id="btnLoad" class="btn btn-primary" style="width: 150px; white-space: nowrap;">데이터 조회</button>
+        <button id="btnExport" class="btn btn-action" style="width: 150px; white-space: nowrap;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          보고서 (PDF)
         </button>
       </div>
     </div>
 
     <!-- 동적 KPI 통계 -->
     <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title" id="kYearTitle">2026년 총 접수</div>
+        <div class="kpi-value" id="kYearTotal">0<span style="font-size:16px; font-weight:600; color:var(--text-secondary);">건</span></div>
+      </div>
       <div class="kpi-card">
         <div class="kpi-title">해당 기간 총 접수</div>
         <div class="kpi-value" id="kTotal">0<span style="font-size:16px; font-weight:600; color:var(--text-secondary);">건</span></div>
@@ -229,10 +233,6 @@
       <div class="kpi-card">
         <div class="kpi-title">검토/처리 진행중</div>
         <div class="kpi-value kpi-highlight" id="kActive">0<span style="font-size:16px; font-weight:600;">건</span></div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-title" id="kYearTitle">2026년 총 접수</div>
-        <div class="kpi-value" id="kYearTotal">0<span style="font-size:16px; font-weight:600; color:var(--text-secondary);">건</span></div>
       </div>
     </div>
 
