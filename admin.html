@@ -84,8 +84,8 @@
     .stats-card.full { grid-column: 1 / -1; }
     .stats-card h4 { margin: 0 0 16px; font-size: 15px; font-weight: 800; color: var(--brand-dark); }
     .stats-card .chart-wrap { position: relative; height: 280px; }
-    .avg-time-row { display: flex; gap: 16px; width: 100%; }
-    .avg-time-box { flex: 1; background: #f8fafc; border-radius: 10px; padding: 18px; text-align: center; }
+    .avg-time-row { display: flex; gap: 16px; width: 100%; box-sizing: border-box; }
+    .avg-time-box { flex: 1 1 0; min-width: 0; background: #f8fafc; border-radius: 10px; padding: 18px; text-align: center; box-sizing: border-box; }
     .avg-time-box .value { font-size: 26px; font-weight: 800; color: var(--brand-dark); }
     .avg-time-box .value span { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
     .owner-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
