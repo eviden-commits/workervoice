@@ -358,8 +358,7 @@
       if (d2) return d2[1];
       return s.substring(0, 16).replace("T", " ");
     }
-</parameter>
-
+    
     function jsonp(params, cb, errCb) {
       const url = new URL(GAS_URL);
       for(let k in params) url.searchParams.set(k, params[k]);
