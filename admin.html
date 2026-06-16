@@ -466,6 +466,15 @@
         document.getElementById("kYearTotal").innerHTML = `${yearCount}<span style="font-size:16px; font-weight:600; color:var(--text-secondary);">건</span>`;
 
         renderDashboard();
+      }, (err) => {
+        if(isLoginAttempt) {
+          document.getElementById("btnLogin").disabled = false;
+          setMsg(err, true);
+        } else alert("조회 중 오류 발생");
+      });
+    }
+
+    function renderDashboard() {
       // KPI 업데이트
       let total = filteredRecords.length, done = 0, critical = 0, active = 0;
       filteredRecords.forEach(it => {
