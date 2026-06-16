@@ -294,7 +294,7 @@
               <th style="width:70px; text-align:center;">첨부</th>
               <th style="width:120px;">목표/완료일자</th>
               <th style="width:120px;">담당자</th>
-              <th style="width:90px; text-align:center;">관리</th>
+              <th style="width:130px; text-align:center;">관리</th>
             </tr>
           </thead>
           <tbody id="tbody">
@@ -583,11 +583,40 @@
             <div style="color:var(--text-secondary);">목표: ${esc(it.due_date)||'-'}</div>
             ${it.status === 'done' ? `<div style="color:#10b981; font-weight:600; margin-top:4px;">완료: ${esc(fmtDate(it.updated_at))}</div>` : ''}
           </td>
-          <td style="font-size:13px;">${esc(it.action_owner)||'-'}</td>
-          <td style="text-align:center;"><button class="btn btn-outline" style="padding:6px 12px; font-size:12px;" onclick="event.stopPropagation(); openModal('${it.id}')">수정</button></td>
+         <td style="font-size:13px;">${esc(it.action_owner)||'-'}</td>
+          <td style="text-align:center; white-space:nowrap;">
+            <button class="btn btn-outline" style="padding:6px 10px; font-size:12px; width:auto; display:inline-block;" onclick="event.stopPropagation(); openModal('${it.id}')">수정</button>
+            <button class="btn btn-outline" style="padding:6px 10px; font-size:12px; width:auto; display:inline-block; margin-left:4px; color:#dc2626; border-color:#fecaca;" onclick="event.stopPropagation(); handleDeleteClick('${it.id}')">삭제</button>
+          </td>
         </tr>`;
       }).join("");
     }
+
+   // 삭제 버튼: 마스터만 실제 삭제, 일반 관리자는 문의 안내
+    window.handleDeleteClick = function(id) {
+      if (!isMaster) {
+        alert("삭제 권한이 없습니다.\n삭제가 필요한 경우 품질안전보건실로 문의해 주세요.");
+        return;
+      }
+      const it = allRecords.find(r => r.id === id);
+      const titleText = it ? it.title : id;
+      if (!confirm(`정말 삭제하시겠습니까?\n\n[${id}] ${titleText}\n\n이 작업은 되돌릴 수 없습니다.`)) return;
+
+      const payload = { action: "admin_delete", contact_email: authEmail, id, token: authCode };
+      const formData = new URLSearchParams();
+      for (let key in payload) formData.append(key, payload[key]);
+
+      fetch(GAS_URL, { method: "POST", body: formData })
+        .then(r => r.json())
+        .then(res => {
+          if (!res || !res.ok) {
+            alert("삭제 실패: " + (res.error || "알 수 없는 오류"));
+            return;
+          }
+          fetchAndFilter(false);
+        })
+        .catch(() => alert("통신 오류가 발생했습니다."));
+    };
 
     // 3. 모달 제어 및 저장
     window.openModal = function(id) {
