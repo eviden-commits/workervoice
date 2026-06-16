@@ -507,9 +507,20 @@
       onTemplateChange();
     });
 
-    setIdentityMode();
+   setIdentityMode();
     renderTitleTemplates();
     loadSites();
+
+    // 메일 바로가기로 들어온 경우 접수번호 자동 입력 + 조회
+    (function autoLookupFromUrl(){
+      const params = new URLSearchParams(window.location.search);
+      const receipt = (params.get("receipt") || "").trim();
+      if (/^\d{4}$/.test(receipt)) {
+        receiptNoInput.value = receipt;
+        lookupByReceipt();
+        document.getElementById("list").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    })();
 
     /* ===== QR 모달 ===== */
     const qrModal = document.getElementById("qrModal");
