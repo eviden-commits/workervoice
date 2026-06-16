@@ -87,6 +87,23 @@
     .modal-content h3 { margin: 0 0 24px; font-size: 20px; font-weight: 800; color: var(--brand-dark); }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 
+    /* 관리자 이메일 관리 모달 */
+    #emailModal .modal-content { max-width: 560px; }
+    .email-site-block { border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+    .email-site-block h4 { margin: 0 0 10px; font-size: 14px; font-weight: 800; color: var(--brand-dark); }
+    .email-chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; min-height: 28px; }
+    .email-chip { display: inline-flex; align-items: center; gap: 6px; background: #eff6ff; color: #2563eb;
+      font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; }
+    .email-chip button { border: 0; background: transparent; color: #2563eb; cursor: pointer; font-size: 14px;
+      line-height: 1; padding: 0; font-weight: 800; }
+    .email-chip button:hover { color: #dc2626; }
+    .email-add-row { display: flex; gap: 8px; }
+    .email-add-row input { flex: 1; }
+    .email-add-row button { width: auto; flex-shrink: 0; padding: 10px 16px; }
+    .email-empty { font-size: 13px; color: var(--text-secondary); }
+
+    @media (max-width: 768px) {
+
     @media (max-width: 768px) {
       #dashboardSection { padding: 20px 14px; }
       .header-bar { flex-direction: column; align-items: flex-start; gap: 16px; }
@@ -130,8 +147,10 @@
         <h2>품질안전보건 관리 대시보드</h2>
         <div id="siteBadge" class="site-badge">로딩중...</div>
       </div>
-      <button class="btn btn-outline" style="width: auto;" onclick="location.reload()">시스템 로그아웃</button>
-    </div>
+     <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline" style="width: auto;" id="btnManageEmails">관리자 이메일 관리</button>
+        <button class="btn btn-outline" style="width: auto;" onclick="location.reload()">시스템 로그아웃</button>
+      </div>
 
     <!-- 신규: 정밀 필터 및 리포트 출력 바 -->
     <div class="filter-card">
@@ -257,9 +276,26 @@
         저장 시 제보자에게 결과 메일 자동 발송
       </label>
 
-      <div style="display:flex; gap:12px;">
+     <div style="display:flex; gap:12px;">
         <button class="btn btn-outline" onclick="document.getElementById('editModal').style.display='none'">취소</button>
         <button class="btn btn-primary" id="btnSaveUpdate">업데이트 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 관리자 이메일 관리 모달 -->
+  <div id="emailModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); padding: 20px;">
+    <div class="modal-content">
+      <h3>관리자 이메일 관리</h3>
+      <p style="font-size:13px; color:var(--text-secondary); margin:-12px 0 20px;">
+        본인이 권한을 가진 현장에 한해 관리자 이메일을 추가/제거할 수 있습니다.<br>
+        마스터 권한 이메일은 이 화면에서 변경할 수 없습니다.
+      </p>
+      <div id="emailModalBody">
+        <p class="email-empty">불러오는 중...</p>
+      </div>
+      <div style="display:flex; gap:12px; margin-top:20px;">
+        <button class="btn btn-outline" id="btnEmailModalClose">닫기</button>
       </div>
     </div>
   </div>
@@ -632,6 +668,105 @@
       `);
       printWindow.document.close();
     });
+
+    /* ===== 5. 관리자 이메일 관리 ===== */
+    const emailModal = document.getElementById("emailModal");
+    const emailModalBody = document.getElementById("emailModalBody");
+
+    document.getElementById("btnManageEmails").addEventListener("click", () => {
+      emailModal.style.display = "flex";
+      loadSiteEmails();
+    });
+    document.getElementById("btnEmailModalClose").addEventListener("click", () => {
+      emailModal.style.display = "none";
+    });
+
+    function loadSiteEmails() {
+      emailModalBody.innerHTML = '<p class="email-empty">불러오는 중...</p>';
+      jsonp({ action: "list_site_emails", contact_email: authEmail }, (res) => {
+        if (!res || !res.ok) {
+          emailModalBody.innerHTML = `<p class="email-empty">조회 실패: ${esc((res && res.error) || "알 수 없는 오류")}</p>`;
+          return;
+        }
+        renderEmailBlocks(res.items || []);
+      }, (err) => {
+        emailModalBody.innerHTML = `<p class="email-empty">조회 실패: ${esc(err)}</p>`;
+      });
+    }
+
+    function renderEmailBlocks(items) {
+      if (!items.length) {
+        emailModalBody.innerHTML = '<p class="email-empty">권한이 부여된 현장이 없습니다.</p>';
+        return;
+      }
+      emailModalBody.innerHTML = items.map((it) => `
+        <div class="email-site-block" data-site="${esc(it.site_name)}">
+          <h4>${esc(it.site_name)}</h4>
+          <div class="email-chip-list">
+            ${it.emails.length
+              ? it.emails.map((em) => `
+                  <span class="email-chip">
+                    ${esc(em)}
+                    <button type="button" class="btn-remove-email" data-site="${esc(it.site_name)}" data-email="${esc(em)}">×</button>
+                  </span>
+                `).join("")
+              : '<span class="email-empty">등록된 관리자가 없습니다.</span>'
+            }
+          </div>
+          <div class="email-add-row">
+            <input type="email" class="text-input email-add-input" placeholder="추가할 이메일 입력" data-site="${esc(it.site_name)}" />
+            <button type="button" class="btn btn-primary btn-add-email" data-site="${esc(it.site_name)}">추가</button>
+          </div>
+        </div>
+      `).join("");
+
+      emailModalBody.querySelectorAll(".btn-remove-email").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (!confirm(`${btn.dataset.email} 을(를) ${btn.dataset.site} 관리자에서 제거할까요?`)) return;
+          manageEmail("remove", btn.dataset.site, btn.dataset.email);
+        });
+      });
+      emailModalBody.querySelectorAll(".btn-add-email").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const input = emailModalBody.querySelector(`.email-add-input[data-site="${cssEscape_(btn.dataset.site)}"]`);
+          const email = (input.value || "").trim();
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            alert("올바른 이메일 형식을 입력해 주세요.");
+            return;
+          }
+          manageEmail("add", btn.dataset.site, email);
+        });
+      });
+    }
+
+    function cssEscape_(s) {
+      return String(s).replace(/(["\\])/g, "\\$1");
+    }
+
+    function manageEmail(op, siteName, targetEmail) {
+      const payload = {
+        action: "admin_manage_emails",
+        contact_email: authEmail,
+        op,
+        site_name: siteName,
+        target_email: targetEmail
+      };
+      if (isMaster) payload.token = authCode; else payload.site_otp = authCode;
+
+      const formData = new URLSearchParams();
+      for (let key in payload) formData.append(key, payload[key]);
+
+      fetch(GAS_URL, { method: "POST", body: formData })
+        .then((r) => r.json())
+        .then((res) => {
+          if (!res || !res.ok) {
+            alert("처리 실패: " + (res.error || "알 수 없는 오류"));
+            return;
+          }
+          loadSiteEmails();
+        })
+        .catch(() => alert("통신 오류가 발생했습니다."));
+    }
   </script>
 </body>
 </html>
