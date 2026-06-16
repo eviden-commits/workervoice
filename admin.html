@@ -80,7 +80,7 @@
     .stats-toolbar { display: flex; justify-content: flex-end; margin-bottom: 16px; }
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1100px; margin: 0 auto; }
     .stats-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+      box-shadow: 0 2px 10px rgba(0,0,0,0.02); min-width: 0; overflow: hidden; }
     .stats-card.full { grid-column: 1 / -1; }
     .stats-card h4 { margin: 0 0 16px; font-size: 15px; font-weight: 800; color: var(--brand-dark); }
     .stats-card .chart-wrap { position: relative; height: 280px; }
@@ -89,7 +89,7 @@
     .avg-time-box .label { font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
     .avg-time-box .value { font-size: 26px; font-weight: 800; color: var(--brand-dark); }
     .avg-time-box .value span { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
-    .owner-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .owner-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
     .owner-table th { text-align: left; padding: 8px 10px; color: var(--text-secondary); font-weight: 700; border-bottom: 1px solid var(--border); }
     .owner-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; }
     .owner-bar-bg { background: #f1f5f9; border-radius: 6px; height: 8px; overflow: hidden; }
