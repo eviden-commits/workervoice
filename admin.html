@@ -44,9 +44,11 @@
     .msg-info { color: var(--brand); }
 
     /* --- Dashboard --- */
-    .header-bar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .header-bar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 16px; }
     .header-bar h2 { font-size: 28px; font-weight: 800; margin: 0 0 8px; color: var(--brand-dark); letter-spacing: -0.5px; }
     .site-badge { display: inline-block; background: #e0e7ff; color: #4338ca; padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 700; }
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .header-actions .btn { width: auto; white-space: nowrap; }
     
     /* Filter Bar */
     .filter-card { background: var(--surface); padding: 20px 24px; border-radius: var(--radius); box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--border); margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
@@ -107,6 +109,8 @@
     @media (max-width: 768px) {
       #dashboardSection { padding: 20px 14px; }
       .header-bar { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .header-actions { width: 100%; }
+      .header-actions .btn { flex: 1; }
       .filter-card { flex-direction: column; align-items: stretch; }
       .filter-card select, .date-wrap input { width: 100%; }
       .date-wrap { flex-wrap: nowrap; }
@@ -147,9 +151,9 @@
         <h2>품질안전보건 관리 대시보드</h2>
         <div id="siteBadge" class="site-badge">로딩중...</div>
       </div>
-     <div style="display:flex; gap:10px;">
-        <button class="btn btn-outline" style="width: auto;" id="btnManageEmails">관리자 이메일 관리</button>
-        <button class="btn btn-outline" style="width: auto;" onclick="location.reload()">시스템 로그아웃</button>
+    <div class="header-actions">
+        <button class="btn btn-outline" id="btnManageEmails">관리자 이메일 관리</button>
+        <button class="btn btn-outline" onclick="location.reload()">시스템 로그아웃</button>
       </div>
 
     <!-- 신규: 정밀 필터 및 리포트 출력 바 -->
