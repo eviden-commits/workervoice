@@ -936,7 +936,109 @@
       viewData.style.display = "none"; viewStats.style.display = "block";
       renderStats();
     });
-    document.getElementById("btnPrintStats").addEventListener("click", () => window.print());
+    document.getElementById("btnPrintStats").addEventListener("click", () => {
+      const avgRowHtml = document.getElementById("avgTimeRow") ? document.getElementById("avgTimeRow").innerHTML : "";
+      const ownerHtml = document.getElementById("ownerTableWrap") ? document.getElementById("ownerTableWrap").innerHTML : "";
+      const siteCanvas = document.getElementById("chartSiteCanvas");
+      const trendCanvas = document.getElementById("chartTrendCanvas");
+      const siteImg = siteCanvas ? siteCanvas.toDataURL("image/png", 1.0) : "";
+      const trendImg = trendCanvas ? trendCanvas.toDataURL("image/png", 1.0) : "";
+      const sDate = document.getElementById("fStart").value;
+      const eDate = document.getElementById("fEnd").value;
+      const printDate = new Date().toISOString().substring(0,10);
+      const siteName = document.getElementById("siteBadge").textContent;
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+          <meta charset="utf-8"/>
+          <title>Worker Voice 통계 리포트</title>
+          <style>
+            @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+            body { font-family: 'Pretendard', sans-serif; color: #0f172a; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; background: #fff; }
+            @media print {
+              @page { size: A4 portrait; margin: 12mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }
+            .container { max-width: 186mm; margin: 0 auto; }
+            .header { border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
+            .title h1 { margin: 0 0 4px; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+            .title p { margin: 0; font-size: 10px; color: #64748b; }
+            .meta { text-align: right; font-size: 9px; color: #64748b; line-height: 1.5; }
+            .meta strong { color: #0f172a; }
+
+            .card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; page-break-inside: avoid; }
+            .card h4 { margin: 0 0 8px; font-size: 11px; font-weight: 800; color: #1e293b; }
+
+            .avg-row { display: flex; gap: 8px; }
+            .avg-box { flex: 1; background: #f8fafc; border-radius: 6px; padding: 8px; text-align: center; }
+            .avg-box .label { font-size: 8px; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+            .avg-box .value { font-size: 14px; font-weight: 800; color: #1e293b; }
+            .avg-box .value span { font-size: 9px; font-weight: 600; color: #64748b; }
+
+            img.chart-img { width: 100%; max-height: 70mm; object-fit: contain; }
+
+            table { width: 100%; border-collapse: collapse; font-size: 9px; table-layout: fixed; }
+            th { background: #f1f5f9; padding: 5px 6px; font-weight: 700; color: #475569; text-align: left; border-bottom: 1px solid #cbd5e1; }
+            td { padding: 5px 6px; border-bottom: 1px solid #f1f5f9; }
+            th:nth-child(1), td:nth-child(1) { width: 50%; }
+            th:nth-child(2), td:nth-child(2) { width: 15%; text-align: center; }
+            th:nth-child(3), td:nth-child(3) { width: 35%; }
+            .owner-bar-bg { background: #f1f5f9; border-radius: 4px; height: 5px; overflow: hidden; }
+            .owner-bar-fill { background: #3b82f6; height: 100%; border-radius: 4px; }
+
+            .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="title">
+                <h1>안전보건 통계 리포트</h1>
+                <p>Worker Voice System &middot; ${isMaster ? "경영진 요약" : "현장 요약"}</p>
+              </div>
+              <div class="meta">
+                <div>대상 현장: <strong>${esc(siteName)}</strong></div>
+                <div>조회 기간: <strong>${sDate} ~ ${eDate}</strong></div>
+                <div>출력 일자: <strong>${printDate}</strong></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h4>평균 처리 소요시간</h4>
+              <div class="avg-row">${avgRowHtml.replace(/class="avg-time-box"/g, 'class="avg-box"').replace(/class="label"/g, 'class="label"').replace(/class="value"/g, 'class="value"')}</div>
+            </div>
+
+            <div class="grid2">
+              <div class="card">
+                <h4>현장별 조치 완료율</h4>
+                ${siteImg ? `<img class="chart-img" src="${siteImg}" />` : '<p style="font-size:10px;color:#94a3b8;">데이터 없음</p>'}
+              </div>
+              <div class="card">
+                <h4>담당자별 처리 현황</h4>
+                ${ownerHtml}
+              </div>
+            </div>
+
+            <div class="card">
+              <h4>위험도·카테고리 월별 추이</h4>
+              ${trendImg ? `<img class="chart-img" src="${trendImg}" />` : '<p style="font-size:10px;color:#94a3b8;">데이터 없음</p>'}
+            </div>
+          </div>
+          <script>
+            if (document.fonts && document.fonts.ready) {
+              document.fonts.ready.then(function(){ setTimeout(function(){ window.print(); }, 300); });
+            } else {
+              setTimeout(function(){ window.print(); }, 1500);
+            }
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    });
 
     /* ===== 5. 관리자 이메일 관리 ===== */
     const emailModal = document.getElementById("emailModal");
