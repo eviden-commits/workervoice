@@ -95,6 +95,10 @@
     .owner-bar-fill { background: var(--brand); height: 100%; border-radius: 6px; }
     .stats-empty { text-align: center; padding: 40px; color: var(--text-secondary); font-size: 14px; }
 
+    @media print {
+      .stats-card { page-break-inside: avoid; }
+    }
+
     @media (max-width: 900px) {
       .stats-grid { grid-template-columns: 1fr; }
     }
@@ -171,9 +175,23 @@
      .kpi-grid .kpi-card:nth-child(odd):last-child { grid-column: span 2; }
     }
 
-    @media print {
+   @media print {
       .header-bar, .filter-card, .kpi-grid, .view-tabs, .stats-toolbar { display: none !important; }
       #viewData { display: none !important; }
+      #dashboardSection { padding: 10mm !important; max-width: 100% !important; }
+      .stats-grid { gap: 10mm !important; }
+      .stats-card { padding: 10mm !important; box-shadow: none !important; border: 1px solid #ccc !important; }
+      .stats-card h4 { font-size: 12px !important; margin-bottom: 8px !important; }
+      .avg-time-box { padding: 8px !important; }
+      .avg-time-box .label { font-size: 10px !important; }
+      .avg-time-box .value { font-size: 16px !important; }
+      .avg-time-box .value span { font-size: 10px !important; }
+      .chart-wrap { height: 180px !important; }
+      .owner-table { font-size: 10px !important; table-layout: auto !important; }
+      .owner-table th, .owner-table td { padding: 4px 6px !important; }
+      .owner-bar-bg { height: 6px !important; }
+      .stats-grid { grid-template-columns: 1fr 1fr !important; }
+      .stats-card.full { grid-column: 1 / -1 !important; }
     }
   </style>
 </head>
