@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Worker Voice Admin</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     
@@ -68,6 +69,37 @@
     .kpi-danger { color: #ef4444; }
     .kpi-success { color: #10b981; }
 
+  /* View Tabs */
+    .view-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .view-tab { background: transparent; border: none; padding: 12px 4px; margin-right: 20px; font-size: 15px; font-weight: 700;
+      color: var(--text-secondary); cursor: pointer; position: relative; }
+    .view-tab.active { color: var(--brand-dark); }
+    .view-tab.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--brand); border-radius: 2px 2px 0 0; }
+
+    /* Stats view */
+    .stats-toolbar { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .stats-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+    .stats-card.full { grid-column: 1 / -1; }
+    .stats-card h4 { margin: 0 0 16px; font-size: 15px; font-weight: 800; color: var(--brand-dark); }
+    .stats-card .chart-wrap { position: relative; height: 280px; }
+    .avg-time-row { display: flex; gap: 16px; }
+    .avg-time-box { flex: 1; background: #f8fafc; border-radius: 10px; padding: 18px; text-align: center; }
+    .avg-time-box .label { font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
+    .avg-time-box .value { font-size: 26px; font-weight: 800; color: var(--brand-dark); }
+    .avg-time-box .value span { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+    .owner-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .owner-table th { text-align: left; padding: 8px 10px; color: var(--text-secondary); font-weight: 700; border-bottom: 1px solid var(--border); }
+    .owner-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; }
+    .owner-bar-bg { background: #f1f5f9; border-radius: 6px; height: 8px; overflow: hidden; }
+    .owner-bar-fill { background: var(--brand); height: 100%; border-radius: 6px; }
+    .stats-empty { text-align: center; padding: 40px; color: var(--text-secondary); font-size: 14px; }
+
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
     /* Table */
     .table-container { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
     table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1100px; }
@@ -129,7 +161,12 @@
       .filter-card select, .date-wrap input { width: 100%; }
       .date-wrap { flex-wrap: nowrap; }
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .kpi-grid .kpi-card:nth-child(5) { grid-column: span 2; }
+     .kpi-grid .kpi-card:nth-child(odd):last-child { grid-column: span 2; }
+    }
+
+    @media print {
+      .header-bar, .filter-card, .kpi-grid, .view-tabs, .stats-toolbar { display: none !important; }
+      #viewData { display: none !important; }
     }
   </style>
 </head>
@@ -236,27 +273,48 @@
       </div>
     </div>
 
-  <!-- 데이터 테이블 -->
-    <p style="font-size:12px; color:var(--text-secondary); margin:0 0 8px 4px;">행을 더블클릭하면 빠르게 수정할 수 있습니다.</p>
-    <div class="table-container">
-      <table>
-        <thead>
-         <tr>
-            <th style="width:96px;">상태</th>
-            <th style="width:88px;">위험도</th>
-            <th style="width:110px;">접수일자</th>
-            <th style="width:150px;">현장명</th>
-            <th>제보 요약 (제목)</th>
-            <th style="width:70px; text-align:center;">첨부</th>
-            <th style="width:120px;">목표/완료일자</th>
-            <th style="width:120px;">담당자</th>
-            <th style="width:90px; text-align:center;">관리</th>
-          </tr>
-        </thead>
-        <tbody id="tbody">
-          <tr><td colspan="9" style="text-align:center; padding:60px; color:var(--text-secondary);">기간 및 조건을 설정하여 데이터를 조회해 주십시오.</td></tr>
-        </tbody>
-      </table>
+  <!-- 뷰 전환 탭 -->
+    <div class="view-tabs">
+      <button class="view-tab active" id="tabData">데이터</button>
+      <button class="view-tab" id="tabStats">통계</button>
+    </div>
+
+    <!-- 데이터 뷰 -->
+    <div id="viewData">
+      <p style="font-size:12px; color:var(--text-secondary); margin:0 0 8px 4px;">행을 더블클릭하면 빠르게 수정할 수 있습니다.</p>
+      <div class="table-container">
+        <table>
+          <thead>
+           <tr>
+              <th style="width:96px;">상태</th>
+              <th style="width:88px;">위험도</th>
+              <th style="width:110px;">접수일자</th>
+              <th style="width:150px;">현장명</th>
+              <th>제보 요약 (제목)</th>
+              <th style="width:70px; text-align:center;">첨부</th>
+              <th style="width:120px;">목표/완료일자</th>
+              <th style="width:120px;">담당자</th>
+              <th style="width:90px; text-align:center;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="9" style="text-align:center; padding:60px; color:var(--text-secondary);">기간 및 조건을 설정하여 데이터를 조회해 주십시오.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 통계 뷰 -->
+    <div id="viewStats" style="display:none;">
+      <div class="stats-toolbar">
+        <button id="btnPrintStats" class="btn btn-outline" style="width:auto;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px; vertical-align:-2px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          통계 인쇄
+        </button>
+      </div>
+      <div id="statsBody">
+        <p class="stats-empty">데이터를 조회하면 통계가 표시됩니다.</p>
+      </div>
     </div>
   </div>
 
@@ -729,6 +787,23 @@
       printWindow.document.close();
     });
 
+    /* ===== 통계 탭 전환 ===== */
+    const tabData = document.getElementById("tabData");
+    const tabStats = document.getElementById("tabStats");
+    const viewData = document.getElementById("viewData");
+    const viewStats = document.getElementById("viewStats");
+
+    tabData.addEventListener("click", () => {
+      tabData.classList.add("active"); tabStats.classList.remove("active");
+      viewData.style.display = "block"; viewStats.style.display = "none";
+    });
+    tabStats.addEventListener("click", () => {
+      tabStats.classList.add("active"); tabData.classList.remove("active");
+      viewData.style.display = "none"; viewStats.style.display = "block";
+      renderStats();
+    });
+    document.getElementById("btnPrintStats").addEventListener("click", () => window.print());
+
     /* ===== 5. 관리자 이메일 관리 ===== */
     const emailModal = document.getElementById("emailModal");
     const emailModalBody = document.getElementById("emailModalBody");
@@ -826,6 +901,203 @@
           loadSiteEmails();
         })
         .catch(() => alert("통신 오류가 발생했습니다."));
+    }
+
+    /* ===== 6. 통계 리포트 ===== */
+    let chartTrend = null, chartSite = null, chartOwner = null;
+
+    function renderStats() {
+      const statsBody = document.getElementById("statsBody");
+      if (!filteredRecords.length) {
+        statsBody.innerHTML = '<p class="stats-empty">해당 조건에 맞는 데이터가 없습니다.</p>';
+        return;
+      }
+
+      statsBody.innerHTML = `
+        <div class="stats-grid">
+          <div class="stats-card full">
+            <h4>평균 처리 소요시간</h4>
+            <div class="avg-time-row" id="avgTimeRow"></div>
+          </div>
+          <div class="stats-card">
+            <h4>현장별 조치 완료율</h4>
+            <div class="chart-wrap"><canvas id="chartSiteCanvas"></canvas></div>
+          </div>
+          <div class="stats-card">
+            <h4>담당자별 처리 현황</h4>
+            <div id="ownerTableWrap"></div>
+          </div>
+          <div class="stats-card full">
+            <h4>위험도·카테고리 월별 추이</h4>
+            <div class="chart-wrap"><canvas id="chartTrendCanvas"></canvas></div>
+          </div>
+        </div>
+      `;
+
+      renderAvgTime();
+      renderSiteCompletionChart();
+      renderOwnerTable();
+      renderTrendChart();
+    }
+
+    // 평균 처리 소요시간: created_at -> updated_at (status=done 건만), 전체 평균 + 위험도별 평균
+    function renderAvgTime() {
+      const doneItems = filteredRecords.filter(it => it.status === 'done');
+      const parseDt = (v) => {
+        const s = String(v || "").trim();
+        if (!s) return null;
+        const d = new Date(s.replace(" ", "T"));
+        return isNaN(d.getTime()) ? null : d;
+      };
+      const diffsHours = [];
+      const byRisk = { critical: [], high: [], medium: [], low: [] };
+      doneItems.forEach(it => {
+        const start = parseDt(it.created_at);
+        const end = parseDt(it.updated_at);
+        if (!start || !end) return;
+        const hours = (end.getTime() - start.getTime()) / 3600000;
+        if (hours < 0) return;
+        diffsHours.push(hours);
+        if (byRisk[it.risk_level]) byRisk[it.risk_level].push(hours);
+      });
+
+      const avg = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0) / arr.length : null;
+      const fmtHours = (h) => {
+        if (h === null) return "-";
+        if (h < 24) return `${h.toFixed(1)}<span>시간</span>`;
+        return `${(h/24).toFixed(1)}<span>일</span>`;
+      };
+
+      const overallAvg = avg(diffsHours);
+      const criticalAvg = avg(byRisk.critical);
+
+      document.getElementById("avgTimeRow").innerHTML = `
+        <div class="avg-time-box">
+          <div class="label">전체 평균 (완료 ${diffsHours.length}건)</div>
+          <div class="value">${fmtHours(overallAvg)}</div>
+        </div>
+        <div class="avg-time-box">
+          <div class="label">긴급(critical) 평균</div>
+          <div class="value">${fmtHours(criticalAvg)}</div>
+        </div>
+        <div class="avg-time-box">
+          <div class="label">조회기간 내 완료 건수</div>
+          <div class="value">${doneItems.length}<span>건</span></div>
+        </div>
+      `;
+    }
+
+    // 현장별 조치 완료율 (가로 막대)
+    function renderSiteCompletionChart() {
+      const bySite = {};
+      filteredRecords.forEach(it => {
+        const s = it.site_name || "(미지정)";
+        if (!bySite[s]) bySite[s] = { total: 0, done: 0 };
+        bySite[s].total++;
+        if (it.status === 'done') bySite[s].done++;
+      });
+      const rows = Object.entries(bySite)
+        .map(([name, v]) => ({ name, rate: Math.round((v.done / v.total) * 100), total: v.total }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 12);
+
+      const ctx = document.getElementById("chartSiteCanvas");
+      if (chartSite) chartSite.destroy();
+      chartSite = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: rows.map(r => r.name),
+          datasets: [{
+            label: '완료율(%)',
+            data: rows.map(r => r.rate),
+            backgroundColor: '#3b82f6',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { x: { min: 0, max: 100, ticks: { callback: (v) => v + '%' } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // 담당자별 처리 현황 (테이블 + 미니 진행바)
+    function renderOwnerTable() {
+      const byOwner = {};
+      filteredRecords.forEach(it => {
+        const owner = (it.action_owner || "").trim() || "(미지정)";
+        if (!byOwner[owner]) byOwner[owner] = { total: 0, done: 0 };
+        byOwner[owner].total++;
+        if (it.status === 'done') byOwner[owner].done++;
+      });
+      const rows = Object.entries(byOwner)
+        .map(([name, v]) => ({ name, total: v.total, done: v.done, rate: Math.round((v.done / v.total) * 100) }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 10);
+
+      const wrap = document.getElementById("ownerTableWrap");
+      if (!rows.length) { wrap.innerHTML = '<p class="stats-empty">담당자 데이터가 없습니다.</p>'; return; }
+
+      wrap.innerHTML = `
+        <table class="owner-table">
+          <thead><tr><th>담당자</th><th style="width:50px; text-align:center;">건수</th><th style="width:120px;">완료율</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td>${esc(r.name)}</td>
+                <td style="text-align:center;">${r.total}</td>
+                <td>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="owner-bar-bg" style="flex:1;"><div class="owner-bar-fill" style="width:${r.rate}%;"></div></div>
+                    <span style="font-size:12px; color:var(--text-secondary); width:34px;">${r.rate}%</span>
+                  </div>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // 위험도/카테고리 월별 추이 (라인 차트, 조회기간 내 월별로 묶음)
+    function renderTrendChart() {
+      const byMonth = {}; // { 'YYYY-MM': { critical:0, high:0, medium:0, low:0 } }
+      filteredRecords.forEach(it => {
+        const d = String(it.created_at || "").substring(0, 7); // YYYY-MM
+        if (!d || d.length !== 7) return;
+        if (!byMonth[d]) byMonth[d] = { critical: 0, high: 0, medium: 0, low: 0 };
+        if (byMonth[d][it.risk_level] !== undefined) byMonth[d][it.risk_level]++;
+      });
+      const months = Object.keys(byMonth).sort();
+
+      const ctx = document.getElementById("chartTrendCanvas");
+      if (chartTrend) chartTrend.destroy();
+
+      if (!months.length) {
+        ctx.parentElement.innerHTML = '<p class="stats-empty">월별 추이를 표시할 데이터가 없습니다.</p>';
+        return;
+      }
+
+      chartTrend = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [
+            { label: '긴급', data: months.map(m => byMonth[m].critical), borderColor: '#9333ea', backgroundColor: '#9333ea', tension: 0.3 },
+            { label: '높음', data: months.map(m => byMonth[m].high), borderColor: '#dc2626', backgroundColor: '#dc2626', tension: 0.3 },
+            { label: '보통', data: months.map(m => byMonth[m].medium), borderColor: '#ea580c', backgroundColor: '#ea580c', tension: 0.3 },
+            { label: '낮음', data: months.map(m => byMonth[m].low), borderColor: '#059669', backgroundColor: '#059669', tension: 0.3 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      });
     }
   </script>
 </body>
