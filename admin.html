@@ -91,7 +91,9 @@
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 
     /* 관리자 이메일 관리 모달 */
-    #emailModal .modal-content { max-width: 560px; }
+    #emailModal .modal-content { max-width: 560px; max-height: 85vh; display: flex; flex-direction: column; padding-bottom: 24px; }
+    #emailModal .modal-content h3, #emailModal .modal-content > p { flex-shrink: 0; }
+    #emailModalBody { overflow-y: auto; flex: 1; padding-right: 4px; margin-right: -4px; }
     .email-site-block { border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
     .email-site-block h4 { margin: 0 0 10px; font-size: 14px; font-weight: 800; color: var(--brand-dark); }
     .email-chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; min-height: 28px; }
@@ -300,10 +302,10 @@
         본인이 권한을 가진 현장에 한해 관리자 이메일을 추가/제거할 수 있습니다.<br>
         마스터 권한 이메일은 이 화면에서 변경할 수 없습니다.
       </p>
-      <div id="emailModalBody">
+     <div id="emailModalBody">
         <p class="email-empty">불러오는 중...</p>
       </div>
-      <div style="display:flex; gap:12px; margin-top:20px;">
+      <div style="display:flex; gap:12px; margin-top:20px; flex-shrink:0;">
         <button class="btn btn-outline" id="btnEmailModalClose">닫기</button>
       </div>
     </div>
