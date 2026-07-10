@@ -122,6 +122,7 @@
     /* Modal */
     #editModal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); padding: 20px; }
     .modal-content { background: var(--surface); border-radius: 16px; width: 100%; max-width: 540px; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    #editModal .modal-content { max-height: 90vh; overflow-y: auto; }
     .modal-content h3 { margin: 0 0 24px; font-size: 20px; font-weight: 800; color: var(--brand-dark); }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 
@@ -358,6 +359,17 @@
   <div id="editModal">
     <div class="modal-content">
       <h3 id="mTitle">조치 내용 편집</h3>
+
+      <div id="mReportInfo" style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; gap:12px; margin-bottom:8px; font-size:12px; color:var(--text-secondary); font-weight:700;">
+          <span id="mInfoMeta"></span>
+          <span id="mInfoReporter"></span>
+        </div>
+        <div id="mInfoTitle" style="font-size:15px; font-weight:800; color:var(--brand-dark); margin-bottom:8px;"></div>
+        <div id="mInfoContent" style="white-space:pre-wrap; line-height:1.5; font-size:13px; color:var(--text-primary); margin-bottom:8px;"></div>
+        <div id="mInfoAttachment" style="font-size:12px;"></div>
+      </div>
+
       <div class="grid-2">
         <div class="input-group">
           <label>진행 상태</label>
@@ -392,7 +404,13 @@
         <label>조치 결과 및 피드백 내용</label>
         <textarea id="mNote" class="text-input" style="min-height: 100px; resize: vertical;" placeholder="이 내용은 제보자에게 메일로 안내됩니다."></textarea>
       </div>
-      
+
+      <div class="input-group">
+        <label>개선사항 업로드 (조치 후 사진 등)</label>
+        <input type="file" id="mActionFile" class="text-input" accept="image/*,application/pdf" />
+        <div id="mActionAttachmentLinks" style="margin-top:8px; font-size:12px;"></div>
+      </div>
+
       <label style="font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom: 24px; cursor:pointer;">
         <input type="checkbox" id="chkNotify" checked style="width:16px; height:16px;" />
         저장 시 제보자에게 결과 메일 자동 발송
@@ -718,6 +736,24 @@
     };
 
     // 3. 모달 제어 및 저장
+    const rTxtFull = { "low":"낮음", "medium":"보통", "high":"높음", "critical":"긴급" };
+    const catTxtFull = { "안전관리":"안전관리", "노무관리":"노무관리", "기타관리":"기타관리" };
+
+    function renderAttachmentLinks(urlsRaw, emptyText) {
+      const urls = String(urlsRaw || "").split(/\n+/).map(s => s.trim()).filter(Boolean);
+      if (!urls.length) return `<span class="attach-none">${esc(emptyText)}</span>`;
+      return urls.map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--brand); font-weight:700; margin-right:10px;">첨부파일${urls.length>1?` ${i+1}`:''} 보기</a>`).join("");
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
     window.openModal = function(id) {
       const it = allRecords.find(r => r.id === id);
       if(!it) return;
@@ -727,12 +763,25 @@
       document.getElementById("mOwner").value = it.action_owner || "";
       document.getElementById("mDate").value = it.due_date || "";
       document.getElementById("mNote").value = it.action_note || "";
+
+      document.getElementById("mInfoMeta").textContent =
+        `${catTxtFull[it.category] || it.category || ""} · ${fmtDate(it.created_at)||'-'} · ${it.site_name || ""} · 위험도 ${rTxtFull[it.risk_level] || it.risk_level || ""}`;
+      document.getElementById("mInfoReporter").textContent =
+        it.is_anonymous === "TRUE" ? "익명 제보" : `${it.reporter_name || "-"} / ${it.reporter_contact || "-"}`;
+      document.getElementById("mInfoTitle").textContent = it.title || "";
+      document.getElementById("mInfoContent").textContent = it.content || "";
+      document.getElementById("mInfoAttachment").innerHTML =
+        "제보 첨부: " + renderAttachmentLinks(it.attachment_urls, "없음");
+
+      document.getElementById("mActionFile").value = "";
+      document.getElementById("mActionAttachmentLinks").innerHTML =
+        "기존 개선사항 첨부: " + renderAttachmentLinks(it.action_attachment_urls, "없음");
+
       document.getElementById("editModal").style.display = "flex";
     };
 
-    document.getElementById("btnSaveUpdate").addEventListener("click", () => {
+    document.getElementById("btnSaveUpdate").addEventListener("click", async () => {
       const btn = document.getElementById("btnSaveUpdate");
-      btn.disabled = true; btn.textContent = "업데이트 중...";
 
       const payload = {
         action: "admin_update", contact_email: authEmail, id: editTargetId,
@@ -744,6 +793,20 @@
         notify: document.getElementById("chkNotify").checked ? "TRUE" : "FALSE"
       };
       if(isMaster) payload.token = authCode; else payload.site_otp = authCode;
+
+      const actionFile = document.getElementById("mActionFile").files[0];
+      if (actionFile) {
+        if (actionFile.size > 10 * 1024 * 1024) {
+          alert("개선사항 첨부파일은 최대 10MB까지 가능합니다.");
+          return;
+        }
+        btn.disabled = true; btn.textContent = "첨부파일 처리 중...";
+        payload.action_attachment_base64 = await fileToDataUrl(actionFile);
+        payload.action_attachment_name = actionFile.name || "attachment";
+        payload.action_attachment_mime = actionFile.type || "application/octet-stream";
+      }
+
+      btn.disabled = true; btn.textContent = "업데이트 중...";
 
       // GET(jsonp) 방식 대신 POST(fetch) 방식으로 통신
       const formData = new URLSearchParams();
@@ -765,7 +828,7 @@
         fetchAndFilter(false); // 재조회
       })
       .catch(err => {
-        btn.disabled = false; btn.textContent = "업데이트 저장"; 
+        btn.disabled = false; btn.textContent = "업데이트 저장";
         alert("통신 오류 발생: 서버 응답을 확인하세요.");
       });
     });
