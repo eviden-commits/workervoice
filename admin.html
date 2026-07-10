@@ -506,15 +506,9 @@
         document.getElementById("loginDesc").style.display = "none";
         
         isMaster = res.is_master;
-        if(isMaster) {
-          document.getElementById("authLabel").textContent = "마스터 권한 승인. 접속 키를 입력하세요.";
-          document.getElementById("inputAuth").placeholder = "마스터 키 입력";
-          setMsg("");
-        } else {
-          document.getElementById("authLabel").textContent = "메일로 발송된 6자리 코드를 입력하세요.";
-          document.getElementById("inputAuth").placeholder = "6자리 코드";
-          setMsg("인증 메일이 발송되었습니다.");
-        }
+        document.getElementById("authLabel").textContent = "메일로 발송된 6자리 코드를 입력하세요.";
+        document.getElementById("inputAuth").placeholder = "6자리 코드";
+        setMsg("인증 메일이 발송되었습니다.");
       }, (err) => {
         document.getElementById("btnRequest").disabled = false;
         setMsg(err, true);
@@ -537,6 +531,7 @@
       jsonp({
         action: "site_list",
         contact_email: authEmail,
+        site_otp: authCode,
         status: document.getElementById("fStatus").value,
         category: document.getElementById("fCategory").value
       }, (res) => {
@@ -693,7 +688,7 @@
       let failCount = 0;
       ids.forEach((id) => {
         chain = chain.then(() => {
-          const payload = { action: "admin_delete", contact_email: authEmail, id, token: authCode };
+          const payload = { action: "admin_delete", contact_email: authEmail, id, site_otp: authCode };
           const formData = new URLSearchParams();
           for (let key in payload) formData.append(key, payload[key]);
           return fetch(GAS_URL, { method: "POST", body: formData })
@@ -720,7 +715,7 @@
       const titleText = it ? it.title : id;
       if (!confirm(`정말 삭제하시겠습니까?\n\n[${id}] ${titleText}\n\n이 작업은 되돌릴 수 없습니다.`)) return;
 
-      const payload = { action: "admin_delete", contact_email: authEmail, id, token: authCode };
+      const payload = { action: "admin_delete", contact_email: authEmail, id, site_otp: authCode };
       const formData = new URLSearchParams();
       for (let key in payload) formData.append(key, payload[key]);
 
@@ -793,7 +788,7 @@
         action_note: document.getElementById("mNote").value,
         notify: document.getElementById("chkNotify").checked ? "TRUE" : "FALSE"
       };
-      if(isMaster) payload.token = authCode; else payload.site_otp = authCode;
+      payload.site_otp = authCode;
 
       const actionFile = document.getElementById("mActionFile").files[0];
       if (actionFile) {
@@ -1274,7 +1269,7 @@
 
     function loadSiteEmails() {
       emailModalBody.innerHTML = '<p class="email-empty">불러오는 중...</p>';
-      jsonp({ action: "list_site_emails", contact_email: authEmail }, (res) => {
+      jsonp({ action: "list_site_emails", contact_email: authEmail, site_otp: authCode }, (res) => {
         if (!res || !res.ok) {
           emailModalBody.innerHTML = `<p class="email-empty">조회 실패: ${esc((res && res.error) || "알 수 없는 오류")}</p>`;
           return;
@@ -1342,7 +1337,7 @@
         site_name: siteName,
         target_email: targetEmail
       };
-      if (isMaster) payload.token = authCode; else payload.site_otp = authCode;
+      payload.site_otp = authCode;
 
       const formData = new URLSearchParams();
       for (let key in payload) formData.append(key, payload[key]);
