@@ -236,6 +236,7 @@
         <div class="header-sub-row">
           <div id="siteBadge" class="site-badge">로딩중...</div>
           <div class="header-actions">
+            <button class="btn btn-outline" id="btnAdminQr">QR 코드</button>
             <button class="btn btn-outline" id="btnManageEmails">관리자 이메일 관리</button>
             <button class="btn btn-outline" id="btnActionLedger">조치대장</button>
             <button class="btn btn-outline" onclick="location.reload()">시스템 로그아웃</button>
@@ -438,6 +439,37 @@
       <div style="display:flex; gap:12px; margin-top:20px; flex-shrink:0;">
         <button class="btn btn-outline" id="btnEmailModalClose">닫기</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 5. QR 코드 안내 모달 -->
+  <div id="adminQrModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); padding: 20px;">
+    <div class="modal-content" style="max-width: 560px; text-align: center;">
+      <h3 style="margin-bottom: 8px;">Worker Voice 시스템 QR 코드</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+        운영 서버(sebangtec.ipdisk.co.kr)로 연결되는 공식 QR 코드입니다. 현장 게시 및 공유용으로 활용하세요.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+          <h4 style="margin: 0 0 10px; font-size: 14px; color: var(--brand-dark);">근로자 제보용 QR</h4>
+          <img src="qr_index.png" alt="근로자용 QR" style="width: 100%; max-width: 180px; border-radius: 8px; border: 1px solid #e2e8f0;" />
+          <div style="margin-top: 8px; font-size: 11px; color: var(--text-secondary); word-break: break-all;">
+            sebangtec.ipdisk.co.kr/workervoice/
+          </div>
+          <a href="qr_index.png" download="근로자_workervoice_qr.png" class="btn btn-outline" style="margin-top: 10px; padding: 6px 12px; font-size: 12px;">QR 다운로드</a>
+        </div>
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+          <h4 style="margin: 0 0 10px; font-size: 14px; color: var(--brand-dark);">관리자 대시보드 QR</h4>
+          <img src="qr_admin.png" alt="관리자용 QR" style="width: 100%; max-width: 180px; border-radius: 8px; border: 1px solid #e2e8f0;" />
+          <div style="margin-top: 8px; font-size: 11px; color: var(--text-secondary); word-break: break-all;">
+            sebangtec.ipdisk.co.kr/workervoice/admin.html
+          </div>
+          <a href="qr_admin.png" download="관리자_workervoice_qr.png" class="btn btn-outline" style="margin-top: 10px; padding: 6px 12px; font-size: 12px;">QR 다운로드</a>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btnAdminQrClose">닫기</button>
     </div>
   </div>
 
@@ -1266,9 +1298,20 @@
       printWindow.document.close();
     });
 
-    /* ===== 5. 관리자 이메일 관리 ===== */
+    /* ===== 5. 관리자 이메일 관리 및 QR 모달 ===== */
     const emailModal = document.getElementById("emailModal");
     const emailModalBody = document.getElementById("emailModalBody");
+    const adminQrModal = document.getElementById("adminQrModal");
+
+    document.getElementById("btnAdminQr").addEventListener("click", () => {
+      adminQrModal.style.display = "flex";
+    });
+    document.getElementById("btnAdminQrClose").addEventListener("click", () => {
+      adminQrModal.style.display = "none";
+    });
+    adminQrModal.addEventListener("click", (e) => {
+      if (e.target === adminQrModal) adminQrModal.style.display = "none";
+    });
 
     document.getElementById("btnManageEmails").addEventListener("click", () => {
       emailModal.style.display = "flex";
