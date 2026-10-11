@@ -1,0 +1,29 @@
+# ========================================================
+# 세방테크 Worker Voice 웹서버 보안 정책 (.htaccess)
+# ========================================================
+
+Options -Indexes
+
+DirectoryIndex index.html index.php
+
+# 민감한 설정 및 SQL 파일 직접 접근 차단
+<FilesMatch "(?i)\.(ini|conf|cnf|err|log|sql|env|bak|backup|swp|sh|bash|py|md|gs)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# config/ 및 sql/ 디렉토리 직접 접근 차단
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(config|sql)/ - [F,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>

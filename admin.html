@@ -441,8 +441,11 @@
     </div>
   </div>
 
+  <!-- 환경설정 -->
+  <script src="config.js"></script>
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyEhd91bxscWGtnLiEwb74vpEcEsNicXHaEdquyLjEkY3-Wxrv-5_5OMoF3f0s6NRzG/exec";
+    const API_URL = (window.WORKERVOICE_CONFIG && window.WORKERVOICE_CONFIG.API_URL) || "./api/index.php";
+    const GAS_URL = API_URL; // fetch/POST 호출 호환
     
     let authEmail = "", authCode = "", isMaster = false;
     let allRecords = [], filteredRecords = [], editTargetId = "";
@@ -460,7 +463,7 @@
       el.textContent = txt;
       el.className = isErr ? "msg-box msg-error" : "msg-box msg-info";
     }
-   function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
     // "2026-06-01T15:00:00.000Z" / "2026-06-01 15:00:00" 등을 "2026-06-01 15:00"으로 통일
     function fmtDate(v) {
@@ -474,18 +477,26 @@
     }
     
     function jsonp(params, cb, errCb) {
-      const url = new URL(GAS_URL);
+      const url = new URL(API_URL, window.location.href);
       for(let k in params) url.searchParams.set(k, params[k]);
-      const cbn = "cb_" + Date.now() + Math.floor(Math.random()*1000);
-      let isDone = false;
-      const t = setTimeout(() => { if(!isDone){ isDone=true; delete window[cbn]; errCb("서버 응답 지연"); } }, 15000);
-      window[cbn] = (res) => { if(!isDone){ isDone=true; clearTimeout(t); delete window[cbn]; cb(res); } };
-      url.searchParams.set("callback", cbn);
-      const s = document.createElement("script");
-      s.src = url.toString();
-      s.onerror = () => { if(!isDone){ isDone=true; clearTimeout(t); delete window[cbn]; errCb("네트워크 오류"); } };
-      s.onload = () => s.remove();
-      document.body.appendChild(s);
+
+      // fetch 우선 호출
+      fetch(url.toString())
+        .then(r => r.json())
+        .then(res => cb(res))
+        .catch(() => {
+          // fetch 실패 시 jsonp fallback
+          const cbn = "cb_" + Date.now() + Math.floor(Math.random()*1000);
+          let isDone = false;
+          const t = setTimeout(() => { if(!isDone){ isDone=true; delete window[cbn]; errCb && errCb("서버 응답 지연"); } }, 15000);
+          window[cbn] = (res) => { if(!isDone){ isDone=true; clearTimeout(t); delete window[cbn]; cb(res); } };
+          url.searchParams.set("callback", cbn);
+          const s = document.createElement("script");
+          s.src = url.toString();
+          s.onerror = () => { if(!isDone){ isDone=true; clearTimeout(t); delete window[cbn]; errCb && errCb("네트워크 오류"); } };
+          s.onload = () => s.remove();
+          document.body.appendChild(s);
+        });
     }
 
     // 1. 로그인 인증

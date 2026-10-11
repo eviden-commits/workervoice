@@ -1,0 +1,8 @@
+# 업로드 파일 및 임시 파일 제외
+uploads/
+*.log
+edge_profile/
+node_modules/
+e2e_*.png
+run_test_suite.js
+run_workervoice_e2e.js

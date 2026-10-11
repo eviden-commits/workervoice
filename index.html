@@ -271,8 +271,11 @@
     </div>
   </main>
 
+  <!-- 환경설정 -->
+  <script src="config.js"></script>
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyEhd91bxscWGtnLiEwb74vpEcEsNicXHaEdquyLjEkY3-Wxrv-5_5OMoF3f0s6NRzG/exec";
+    const API_URL = (window.WORKERVOICE_CONFIG && window.WORKERVOICE_CONFIG.API_URL) || "./api/index.php";
+    const GAS_URL = API_URL; // 하위 호환성 유지
     
     const titleTemplates = {
       "안전관리": ["작업중지권 발동","보호구 미착용/지급 부족","추락·낙하 위험 구간 안전조치 미흡","전기·기계 설비 안전점검 필요","비상대응(소화기·대피동선) 점검 요청"],
@@ -344,18 +347,53 @@
       titleInputEl.disabled = false; titleInputEl.value = v; titleInputEl.disabled = true;
     }
 
-    function loadSites(){
-      const url = new URL(GAS_URL); url.searchParams.set("action","sites");
-      jsonp(url, (res) => {
+    async function apiCall(action, params = {}, options = {}) {
+      const isPost = options.method === 'POST';
+      let url = new URL(API_URL, window.location.href);
+      url.searchParams.set("action", action);
+
+      if (!isPost) {
+        for (const [k, v] of Object.entries(params)) {
+          if (v !== undefined && v !== null) url.searchParams.set(k, v);
+        }
+      }
+
+      // 1. fetch 지원 시 표준 fetch 호출
+      try {
+        const fetchOpts = {
+          method: isPost ? 'POST' : 'GET',
+          headers: options.headers || {}
+        };
+        if (isPost && options.body) {
+          fetchOpts.body = options.body;
+        }
+        const res = await fetch(url.toString(), fetchOpts);
+        const data = await res.json();
+        return data;
+      } catch (err) {
+        // 2. GET 요청 실패 시 jsonp fallback 시도
+        if (!isPost) {
+          return new Promise((resolve, reject) => {
+            jsonp(url, resolve, reject);
+          });
+        }
+        throw err;
+      }
+    }
+
+    async function loadSites(){
+      try {
+        submitMsg.textContent = "현장 목록 불러오는 중...";
+        const res = await apiCall("sites");
         if(!res || !res.ok){ submitMsg.textContent = "현장 로딩 실패: 서버 응답 오류"; return; }
         const items = res.items || [];
-        if(!items.length){ submitMsg.textContent = "현장 로딩 실패: site 탭 데이터 없음"; return; }
+        if(!items.length){ submitMsg.textContent = "현장 로딩 실패: 등록된 현장 없음"; return; }
         siteNameEl.innerHTML = '<option value="">현장 선택</option>' + items.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
         submitMsg.textContent = `현장 로딩 완료 (${items.length}개)`;
-      }, (reason) => {
+      } catch (reason) {
         siteNameEl.innerHTML = '<option value="">현장 선택 (실패)</option>';
-        submitMsg.textContent = `현장 로딩 실패: ${reason} / 배포권한(Anyone)·URL·재배포 확인`;
-      });
+        submitMsg.textContent = `현장 로딩 실패: ${reason}`;
+      }
     }
 
     function renderList(items){
@@ -372,16 +410,17 @@
       }).join("");
     }
 
-    function lookupByReceipt(){
+    async function lookupByReceipt(){
       const receipt = (receiptNoInput.value || "").trim();
       if(!/^\d{4}$/.test(receipt)){ listEl.innerHTML = '<p class="notice">접수번호 4자리를 입력해 주세요.</p>'; return; }
-      const url = new URL(GAS_URL);
-      url.searchParams.set("action","receipt_lookup");
-      url.searchParams.set("receipt_no",receipt);
-      jsonp(url, (res) => {
+      listEl.innerHTML = '<p class="notice">조회 중...</p>';
+      try {
+        const res = await apiCall("receipt_lookup", { receipt_no: receipt });
         if(!res || !res.ok){ listEl.innerHTML = `<p class="notice">조회 실패: ${esc((res && res.error) || "unknown")}</p>`; return; }
         renderList(res.items || []);
-      }, (reason) => { listEl.innerHTML = `<p class="notice">조회 실패: ${esc(reason)}</p>`; });
+      } catch (reason) {
+        listEl.innerHTML = `<p class="notice">조회 실패: ${esc(reason)}</p>`;
+      }
     }
 
     function fileToDataUrl(file){
@@ -403,7 +442,7 @@
     titleTemplateEl.addEventListener("change", onTemplateChange);
     document.getElementById("btnLookup").addEventListener("click", lookupByReceipt);
 
-    document.getElementById("btnFindReceipt").addEventListener("click", (e) => {
+    document.getElementById("btnFindReceipt").addEventListener("click", async (e) => {
       e.preventDefault();
       const email = prompt("접수 시 입력했던 이메일 주소를 입력해 주세요.\n(익명 접수건은 조회가 불가능합니다)");
       if (!email) return;
@@ -412,21 +451,17 @@
         return;
       }
 
-      const url = new URL(GAS_URL);
-      url.searchParams.set("action", "find_receipt");
-      url.searchParams.set("email", email);
-
       listEl.innerHTML = '<p class="notice">이메일로 접수번호를 발송 중입니다...</p>';
-
-      jsonp(url, (res) => {
+      try {
+        const res = await apiCall("find_receipt", { email });
         if (!res || !res.ok) {
           listEl.innerHTML = `<p class="notice" style="color: var(--high);">조회 실패: ${esc((res && res.error) || "알 수 없는 오류")}</p>`;
           return;
         }
         listEl.innerHTML = `<p class="notice" style="color: var(--low); font-weight: 600;">${esc(res.message)}</p>`;
-      }, (reason) => {
+      } catch (reason) {
         listEl.innerHTML = `<p class="notice" style="color: var(--high);">조회 실패: ${esc(reason)}</p>`;
-      });
+      }
     });
 
     voiceForm.addEventListener("submit", async (ev) => {
@@ -461,13 +496,53 @@
       submitBtn.textContent = "제출 중...";
       submitMsg.textContent = "접수 중...";
       receiptMsg.style.display = "none";
-      voiceForm.action = GAS_URL;
-      voiceForm.submit();
-      window.__submitPending = true;
-      setTimeout(() => {
-        if(!window.__submitPending) return;
-        submitMsg.textContent = "접수 응답 지연: 서버 재배포/권한/리캡차 설정을 확인해 주세요.";
-      }, 10000);
+
+      try {
+        const formData = new FormData(voiceForm);
+        formData.set("action", "create");
+
+        const res = await fetch(API_URL + "?action=create", {
+          method: "POST",
+          body: formData
+        }).then(r => r.json());
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = "보고서 제출하기";
+
+        if (!res || !res.ok) {
+          submitMsg.textContent = `접수 실패: ${res.error || "unknown error"}`;
+          alert(`접수 실패\n${res.error || "unknown error"}`);
+          return;
+        }
+
+        const anon = isAnonymousToggle.checked;
+        const receipt = String(res.id || "").slice(-4);
+        submitMsg.textContent = anon
+          ? "접수가 완료되었으나, 개선결과는 통지받지 못할수 있습니다."
+          : "접수가 완료되었습니다. 소중한 제보 감사합니다.";
+        receiptMsg.style.display = "block";
+        receiptMsg.innerHTML = `보고서가 성공적으로 제출되었습니다. 접수번호는 <strong>#${esc(receipt)}</strong> 입니다.`;
+        receiptNoInput.value = receipt;
+        if (window.grecaptcha) grecaptcha.reset();
+
+        // 폼 초기화
+        voiceForm.reset();
+        setIdentityMode();
+        onTemplateChange();
+        attachmentBase64.value = "";
+        attachmentName.value = "";
+        attachmentMime.value = "";
+      } catch (err) {
+        // 네트워크 또는 구버전 환경인 경우 iframe fallback 시도
+        console.warn("Direct POST failed, falling back to iframe:", err);
+        voiceForm.action = GAS_URL;
+        voiceForm.submit();
+        window.__submitPending = true;
+        setTimeout(() => {
+          if (!window.__submitPending) return;
+          submitMsg.textContent = "접수 응답 지연: 서버 재배포/권한/리캡차 설정을 확인해 주세요.";
+        }, 10000);
+      }
     });
 
     window.addEventListener("message", (event) => {
